@@ -1,6 +1,6 @@
 var express = require('express');
 var socket = require('socket.io');
-var portNum = 1337;
+var portNum = 1520;
 var connected_ids = [];
 
 // function to print all connected IDs that are in the server now
