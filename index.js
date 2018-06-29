@@ -26,7 +26,7 @@ function delete_id(id) {
 // App setup
 var app = express();
 var server = app.listen(portNum, function() { 
-	console.log('Listening to requests on port ' + portNum);
+	console.log('Server has been started. Port number = ' + portNum);
 });
 
 // Set up standard file
@@ -34,6 +34,7 @@ app.use(express.static('public'));
 
 // Socket setup
 var io = socket(server);
+
 
 // When connected, output message onto server side console, add to list of connected clients
 io.on('connection', function(socket) {
