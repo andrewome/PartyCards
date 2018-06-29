@@ -1,0 +1,11 @@
+.App {
+  border: 3px #solid #eee;
+  box-shadow: 0 2px 2px #ccc;
+  display: block;
+  text-align: center;
+  margin: 20px;
+  padding: 50px;
+  box-shadow: 20px;
+  background-color: #ffff11ff;
+  font-family:  cursive;
+}
