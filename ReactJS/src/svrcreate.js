@@ -1,9 +1,24 @@
 import React, { Component } from 'react';
 import './homepage.css'
 
+// function generate a number between 0-9
+function generateRandNum() {
+	return Math.floor(Math.random() * (9 - 0 + 1)) + 0;
+}
+
+// random 5 digit game PIN generator function
+function generateGamePIN() {
+	var gamePIN = generateRandNum();
+	gamePIN.toString();
+	for(var i=0;i<4;i++) {
+		gamePIN += generateRandNum().toString();
+	}
+	return gamePIN;
+}
+
 class Svrcreate extends Component{
   state = {
-    server_PIN: "1729",
+    server_PIN: generateGamePIN(),
     selectGame : "Taiti",
     num_players : "4",
     server_created : false
