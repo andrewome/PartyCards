@@ -1,36 +1,47 @@
 import React, { Component } from 'react';
-import './body.css'
+import './homepage.css';
+import Svrcreate from './svrcreate';
 
 class Body extends Component {
   state = {
-    New_server_name: "Enter Server Name",
-    New_server_PIN: "Enter Server PIN",
-    server_name: "Enter Server Name",
-    server_PIN: "Enter Server Name"
+    server_PIN: "Enter PIN here",
+    create_server: false,
+    join_server: false
   }
-  /*txt1ChangedHandler = (event) =>{
-    this.setState({text: [event.target.value,"Enter Server PIN","Enter Server name","Enter Server PIN"]});
+  handle_create_server = () =>  {
+    this.setState({create_server: true});
   }
-  txt2ChangedHandler = (event) =>{
-    this.setState({text: ["Enter Server name",event.target.value,"Enter Server name","Enter Server PIN"]});
-  }*/
+  handle_join_server = () => {
+    this.setState({join_server: true});
+  }
+
   render() {
+    if(this.state.create_server === false && this.state.join_server === false){
     return (
       <div className="Init">
-      <input type = "text" className = "textfield" value = {this.state.New_server_name} onChange={(e) => {this.setState({New_server_name: e.target.value})}} ></input>
-      <br/>
-      <input type = "text" className = "textfield" value = {this.state.New_server_PIN} onChange={(e) => {this.setState({New_server_PIN: e.target.value})}}></input>
-      <br/>
-      <button className = "server" onClick = {() =>  this.render(<input type = "text"></input>)}> Create New Server </button>
-      <br/>
-      <input type = "text" className = "textfield" value = {this.state.server_name} onChange={(e) => {this.setState({server_name: e.target.value})}}></input>
-      <br/>
-      <input type = "text" className = "textfield" value = {this.state.server_PIN} onChange={(e) => {this.setState({server_PIN: e.target.value})}}></input>
-      <br/>
-      <button className = "server">Join Existing Server</button>
+        <button type = "primary" className = "button" onClick = {this.handle_create_server}> Create New Server </button>
+        <br/>
+        <p className = "para"> or </p>
+        <input type = "text" className = "textfield" value = {this.state.server_PIN} onChange={(e) => {this.setState({server_PIN: e.target.value})}}></input>
+        <br/>
+        <button className = "button" onClick = {this.handle_join_server}>Join Existing Server</button>
+      </div>
+    );
+  }
+  else if(this.state.create_server){
+    return(
+      <Svrcreate/>
+    )
+  }
+
+  else if(this.state.join_server){
+    return(
+      <div className="Init">
+      <p>Enter the server PIN:</p>
+      <input type = "text"/>
       </div>
     );
   }
 }
-
+}
 export default Body;
