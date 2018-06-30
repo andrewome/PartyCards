@@ -10,8 +10,9 @@ class Scoreboard extends Component{
     const listItems = data.map((d) => <li key={d.name}>{d.name} Score: {d.score}</li>);
     return(
       <div className = "Scoreboard">
-      <p>Game being played: {this.props.GameName}</p>
-      {listItems}
+        <p>Room PIN: {this.props.server_PIN}</p>
+        <p>Game being played: {this.props.GameName}</p>
+        {listItems}
       </div>
     );
   }

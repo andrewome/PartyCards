@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import './Games.css';
 import Scoreboard from './scoreboard';
 import Player_list from './Player_list';
-import Deck from './Deck.js';
+import Deck from './Deck';
+import Sort from './sorting'
 
 class Taiti extends Component{
   constructor(props){
@@ -10,8 +11,15 @@ class Taiti extends Component{
     super(Player_list)
   }
   state = {
+    server_PIN: "1729",
+    top_deck: "Cheat!",
+    message: "Select a card!",
+    selected_cards: [],
     Discard_pile: [],
     playerID: 0
+  }
+  handleSelect_Card = (name) =>{
+    this.setState({message: "You selected: " + name});
   }
   render(){
     //Initialisation
@@ -26,31 +34,31 @@ class Taiti extends Component{
     }
     const playerhand = players.list[this.state.playerID].hand;
     //Sorts hand according to value
-    for(let i = 0;i<playerhand.length;i++){
-      var changed = 0;
-      for(let j = 0;j<playerhand.length -1;j++){
-        if(playerhand[j].value.num > playerhand[j+1].value.num){
-          var changed = 1
-          var temp = playerhand[j]
-          playerhand[j] = playerhand[j+1]
-          playerhand[j+1] = temp;
-        }
-        else{
-          continue;
-        }
-      }
-      if(changed == 0){
-          break;
-      }
-    }
-    const listHand = playerhand.map((d) => <li key={d.name}>{d.name} </li>);
+    Sort.byValue(players.list[0].hand);
+    var selected_cards = []
+    const listHand = playerhand.map((d) =>
+      <button className = "Cards" onClick = {() => {
+        this.handleSelect_Card(d.name)
+        selected_cards.push(d.name)
+      }}
+      key={d.name}>{d.name}
+      </button>);
+    const listCards = selected_cards.map((card) =>
+      <li key = {card.name}>{card.name}
+      </li>);
     return(
-      <div>
-      <Scoreboard GameName = "Taiti" num_players = {this.props.num_players}
-      players = {players}
-      />
-      <p>{players.list[0].name}</p>
-      {listHand}
+      <div className = "Parent">
+        <Scoreboard server_PIN = {this.state.server_PIN}   GameName = "Cheat" num_players = {this.props.num_players}
+        players = {players}
+        />
+        <div className = "p1">
+          <p>{players.list[0].name}</p>
+          {listHand}
+          <button className = "button">Call Bluff!</button>
+        </div>
+        <p className = "p1">{this.state.message}</p>
+        {listCards}
+        <h1 className = "discardpile">{this.state.top_deck}</h1>
       </div>
     );
   }
