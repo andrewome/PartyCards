@@ -37,6 +37,7 @@ class Body extends Component {
       <Title />
       <Init OnHandle_create_server = {this.handlecreate_server}
             OnHandle_join_server = {this.handlejoin_server}
+       />
        </div>
 
     );
