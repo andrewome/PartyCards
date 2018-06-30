@@ -3,19 +3,28 @@ import './homepage.css'
 
 class Svrcreate extends Component{
   state = {
+    server_PIN: "1729",
     selectGame : "Taiti",
-    num_players : "4"
+    num_players : "4",
+    server_created : false
   };
   handleChange = (event) => {
     this.setState({selectGame: event.target.value});
   };
   handleNumChange = (event) =>{
     this.setState({num_players: event.target.value});
+  };
+  handleSubmission = () =>{
+    var Game = this.state.selectGame;
+    var num_players = this.state.num_players;
+    this.props.OnHandle_server_created(true);
+    this.props.OnHandle_selectGame(Game);
+    this.props.OnHandle_num_players(num_players);
   }
   render(){
     return(
     <div className="Init">
-    <p>Your server PIN is 1729 </p>
+    <p>Your server PIN is {this.state.server_PIN}</p>
 
     <p>Choose the game you want to play:</p>
 
@@ -37,27 +46,10 @@ class Svrcreate extends Component{
           <option value="5">5</option>
         </select>
         <br/>
-        <button className = "button">Submit </button>
+        <button className = "button" onClick = {this.handleSubmission}>Submit </button>
       </div>
     );
   }
 }
-  /*  <select id = "dropdown">
-                <option value="Big 2">Taiti</option>
-                <option value="Cheat">Cheat</option>
-                <option value="Hearts">Hearts</option>
-                <option value="Bridge">Bridge</option>
-            </select>
-    <p>Select the number of players</p>
-      <select id = "dropdown">
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
-      <br/>
-      <button className = "textfield">Submit </button>
-    </div>
-    {*/
 
 export default Svrcreate;

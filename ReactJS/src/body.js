@@ -1,36 +1,55 @@
 import React, { Component } from 'react';
 import './homepage.css';
 import Svrcreate from './svrcreate';
+import Init from './Init';
 
 class Body extends Component {
   state = {
-    server_PIN: "Enter PIN here",
+    server_PIN: "1729",
     create_server: false,
-    join_server: false
+    join_server: false,
+    server_created: false,
+    Game: "Taiti"
   }
-  handle_create_server = () =>  {
-    this.setState({create_server: true});
+  handlecreate_server = (value) => {
+        this.setState({create_server: value});
   }
-  handle_join_server = () => {
-    this.setState({join_server: true});
+  handlejoin_server = (value) => {
+        this.setState({join_server: value});
+  }
+  handleserver_created = (value) => {
+        this.setState({server_created: value});
+  }
+  handleselectGame= (value) => {
+        this.setState({Game: value});
+  }
+  handlenum_players = (value) =>{
+        this.setState({num_players: value});
   }
 
   render() {
     if(this.state.create_server === false && this.state.join_server === false){
     return (
-      <div className="Init">
-        <button type = "primary" className = "button" onClick = {this.handle_create_server}> Create New Server </button>
-        <br/>
-        <p className = "para"> or </p>
-        <input type = "text" className = "textfield" value = {this.state.server_PIN} onChange={(e) => {this.setState({server_PIN: e.target.value})}}></input>
-        <br/>
-        <button className = "button" onClick = {this.handle_join_server}>Join Existing Server</button>
+      <Init OnHandle_create_server = {this.handlecreate_server}
+            OnHandle_join_server = {this.handlejoin_server}
+       />
+
+    );
+  }
+  else if(this.state.create_server && this.state.server_created){
+    return(
+      <div>
+      <p> Game being played: {this.state.Game}</p>
+      <p>Number of players {this.state.num_players}</p>
       </div>
     );
   }
-  else if(this.state.create_server){
+  else if(this.state.create_server && !this.state.server_created ){
     return(
-      <Svrcreate/>
+      <Svrcreate OnHandle_server_created = {this.handleserver_created }
+                OnHandle_selectGame = {this.handleselectGame}
+                OnHandle_num_players = {this.handlenum_players}
+      />
     )
   }
 
