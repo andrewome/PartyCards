@@ -9,14 +9,10 @@ class Init extends Component {
 	}
 
 	handle_create_server = () =>  {
-		var gamePIN;
 		this.props.socket.emit('checkGamePin');
 		this.props.socket.on('receiveGamePin', function(pin) {
-			gamePIN = pin;
-			console.log(gamePIN);
-		});
-		
-		this.props.OnhandleGetPin(gamePIN);
+			this.props.OnHandleGetPin(pin);
+		}.bind(this));
 		this.props.OnHandle_create_server(true);
 	}
 	handle_join_server = () => {

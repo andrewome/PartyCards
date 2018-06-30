@@ -17,6 +17,7 @@ io = socket(server);
 // Server side variables
 var connected_ids = [];
 var game_instances = [];
+var PINNumList = [];
 
 // function to print all connected IDs that are in the server now
 function printConnectedIDs() {
@@ -73,9 +74,9 @@ io.on('connection', function(socket) {
 	
 	socket.on('checkGamePin', function() {
 		var gamePIN = generateGamePIN(), isTaken = false;
-		var i, l = game_instances.length;
+		var i, l = PINNumList.length;
 		for(i=0;i<l;i++) {
-			if(game_instances[i].pinNo == gamePIN) {
+			if(PINNumList[i].pinNo == gamePIN) {
 				isTaken = true;
 				break;
 			}
@@ -85,13 +86,14 @@ io.on('connection', function(socket) {
 			while(isTaken) {
 				gamePIN = generateGamePIN();
 				for(i=0;i<l;i++) {
-					if(game_instances[i].pinNo == gamePIN) {
+					if(PINNumList[i].pinNo == gamePIN) {
 						continue;
 					}
 				}
 				isTaken = false;
 			}
 		}
+		PINNumList.push(gamePIN);
 		socket.emit('receiveGamePin', gamePIN);
 	});
 	

@@ -3,7 +3,6 @@ import './homepage.css'
 
 class Svrcreate extends Component{
 	state = {
-		server_PIN: this.props.server_PIN,
 		selectGame : "Taiti",
 		num_players : "4",
 		server_created : false
@@ -17,7 +16,7 @@ class Svrcreate extends Component{
 	};
 	handleSubmission = () =>{
 	var data = {
-		pinNo: this.state.server_PIN,
+		pinNo: this.props.server_PIN,
 		gameType: this.state.selectGame,
 		num_players: this.state.num_players
 	};
@@ -34,7 +33,7 @@ class Svrcreate extends Component{
 	render() {
 		return ( 
 			<div className="Init">
-				<p>Your server PIN is {this.state.server_PIN}</p>
+				<p>Your server PIN is {this.props.server_PIN}</p>
 
 				<p>Choose the game you want to play:</p>
 

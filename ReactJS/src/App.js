@@ -25,14 +25,13 @@ class Body extends Component {
 	handleserver_created = (value) => {
 		this.setState({server_created: value});
 	}
-	handleselectGame= (value) => {
+	handleselectGame = (value) => {
 		this.setState({Game: value});
 	}
 	handlenum_players = (value) => {
 		this.setState({num_players: value});
 	}
 	handleGetPin = (value) => {
-		console.log(value);
 		this.setState({server_PIN: value});
 	}
 	
@@ -47,7 +46,7 @@ class Body extends Component {
 					<Title />
 					<Init OnHandle_create_server = {this.handlecreate_server}
 						  OnHandle_join_server = {this.handlejoin_server}
-						  OnhandleGetPin = {this.handleGetPin}
+						  OnHandleGetPin = {this.handleGetPin}
 						  socket = {this.socket}
 					/>
 				</div>
@@ -67,7 +66,7 @@ class Body extends Component {
 						<Svrcreate OnHandle_server_created = {this.handleserver_created }
 								   OnHandle_selectGame = {this.handleselectGame}
 								   OnHandle_num_players = {this.handlenum_players}
-								   server_PIN = {this.server_PIN}
+								   server_PIN = {this.state.server_PIN}
 								   socket = {this.socket}
 						/>
 				</div>
