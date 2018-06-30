@@ -7,12 +7,14 @@ class Deck {
   }
   generate_deck(){
     let card = (suit,value) => {
-      this.name = value + ' of ' + suit
+      this.name = value.sym + ' of ' + suit
       this.suit = suit
       this.value = value
       return {name:this.name, suit:this.suit, value:this.value}
     }
-    let values = ['1','2','3','4','5','6','7','8','9','10','J','Q','K','A']
+    //let values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
+    let values = [{sym :'2',num : 2},{sym :'3',num : 3},{sym :'4',num : 4},{sym :'5',num : 5},{sym :'6',num : 6},{sym :'7',num : 7},{sym :'8',num : 8}
+                ,{sym :'9',num : 9},{sym :'10',num : 10},{sym :'J',num : 11},{sym :'Q',num : 12},{sym :'K',num : 13},{sym :'A',num : 14}]
     let suits = ['Clubs','Diamonds','Hearts','Spades']
     for(let i = 0;i<suits.length;i++){
       for(let j = 0;j < values.length;j++){
