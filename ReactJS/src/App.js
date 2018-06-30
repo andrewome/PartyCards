@@ -9,12 +9,13 @@ import io from 'socket.io-client'
 
 class Body extends Component {
 	state = {
-		server_PIN: "1729",
+		server_PIN: "1111",
 		create_server: false,
 		join_server: false,
 		server_created: false,
 		Game: "Taiti",
-	}  
+	}
+	
 	handlecreate_server = (value) => {
 		this.setState({create_server: value});
 	}
@@ -27,8 +28,12 @@ class Body extends Component {
 	handleselectGame= (value) => {
 		this.setState({Game: value});
 	}
-		handlenum_players = (value) =>{
+	handlenum_players = (value) => {
 		this.setState({num_players: value});
+	}
+	handleGetPin = (value) => {
+		console.log(value);
+		this.setState({server_PIN: value});
 	}
 	
 	// Make client connection to server
@@ -42,6 +47,8 @@ class Body extends Component {
 					<Title />
 					<Init OnHandle_create_server = {this.handlecreate_server}
 						  OnHandle_join_server = {this.handlejoin_server}
+						  OnhandleGetPin = {this.handleGetPin}
+						  socket = {this.socket}
 					/>
 				</div>
 			);
@@ -60,6 +67,7 @@ class Body extends Component {
 						<Svrcreate OnHandle_server_created = {this.handleserver_created }
 								   OnHandle_selectGame = {this.handleselectGame}
 								   OnHandle_num_players = {this.handlenum_players}
+								   server_PIN = {this.server_PIN}
 								   socket = {this.socket}
 						/>
 				</div>

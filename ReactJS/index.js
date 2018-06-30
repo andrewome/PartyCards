@@ -40,6 +40,22 @@ function delete_id(id) {
 	console.log('');
 }
 
+// function generate a number between 0-9
+function generateRandNum() {
+	return Math.floor(Math.random() * (9 - 0 + 1)) + 0;
+}
+
+// random 5 digit game PIN generator function
+function generateGamePIN() {
+	var gamePIN = generateRandNum();
+	gamePIN.toString();
+	for(var i=0;i<4;i++) {
+		gamePIN += generateRandNum().toString();
+	}
+	return gamePIN;
+}
+
+
 // All backend functions here
 io.on('connection', function(socket) {
 	// When connected, output message onto server side console, add to list of connected clients
@@ -48,33 +64,49 @@ io.on('connection', function(socket) {
 	printConnectedIDs();
 
 	// When disconnected, output message to server side console, and remove from list of connected clients
+	// check whether or not the room that this socket.id was in is empty. If empty, remove from game initiations
 	socket.on('disconnect', function() {
 		console.log(socket.id + " has disconnected from the server");
 		delete_id(socket.id);
-		printConnectedIDs();
+		//printConnectedIDs();
 	});
 	
-	// Receive game pin + check if gamepin is being used
-	socket.on('startNewServer', function(data) {
-		var pinNo = data.pinNo, gametype = data.gametype, num_players = data.num_players, isTaken = false;
-		
-		// check if game PIN exists inside
-		for(var i=0;i<game_instances.length;i++) {
-			if(game_instances[i] == pinNo) {
+	socket.on('checkGamePin', function() {
+		var gamePIN = generateGamePIN(), isTaken = false;
+		var i, l = game_instances.length;
+		for(i=0;i<l;i++) {
+			if(game_instances[i].pinNo == gamePIN) {
 				isTaken = true;
+				break;
 			}
 		}
-		
-		// if it does, re-generate a new game PIN
+		// if there's an instance of the same PIN no., generate a new one until it is unique.
 		if(isTaken) {
-			console.log("Server ID is taken, re-generating a new PIN");
-			return isTaken;
+			while(isTaken) {
+				gamePIN = generateGamePIN();
+				for(i=0;i<l;i++) {
+					if(game_instances[i].pinNo == gamePIN) {
+						continue;
+					}
+				}
+				isTaken = false;
+			}
 		}
-		// if it is unique, then add to list of game instances
-		else {
-			game_instances.push(pinNo);
-			console.log(socket.id + " is using room " + data.pinNo);
-		}
+		socket.emit('receiveGamePin', gamePIN);
 	});
+	
+	// Receive game pin
+	socket.on('startNewServer', function(data) {
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1};
+		game_instances.push(instance);
+		console.log(socket.id + " has created a new room: " + data.pinNo);
+	});
+	
+	socket.on('connectToRoom', function(pin) {
+		socket.join(pin);
+		console.log(socket.id + " has joined room " + pin);
+		
+	});
+		
 });
 
