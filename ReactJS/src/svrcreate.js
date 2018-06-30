@@ -1,10 +1,5 @@
 import React, { Component } from 'react';
 import './homepage.css'
-import io from 'socket.io-client'
-
-// Make client connection to server
-// Don't forget to change localhost to your actual URL!
-var socket = io("localhost:1520");
 
 // function generate a number between 0-9
 function generateRandNum() {
@@ -47,11 +42,11 @@ class Svrcreate extends Component{
 	
 	//tell the server what room this client is using,
 	//in this case, it's the game PIN
-	socket.emit('startNewServer', data, function serverCheck(isTaken) {
+	this.props.socket.emit('startNewServer', data, function serverCheck(isTaken) {
 		if(isTaken) {
 			this.state.server_PIN = generateGamePIN();
 			data.pinNO = this.state.server_PIN;
-			socket.emit('startNewServer', data, serverCheck(isTaken));
+			this.props.socket.emit('startNewServer', data, serverCheck(isTaken));
 		}
 	});
 	
