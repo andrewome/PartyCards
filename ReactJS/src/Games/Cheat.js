@@ -10,7 +10,7 @@ class Taiti extends Component {
 		super(props);
 	}
 	state = {
-		turn_phase: 1, // 0 for not your turn, 1 for your turn pick phase, 2 for your turn Cheat phase
+		turn_phase: 0, // 0 for not your turn, 1 for your turn pick phase, 2 for your turn Cheat phase
 		instance: {},
 		server_PIN: this.props.serverPIN,
 		last_action_tb: "Cheat!",
