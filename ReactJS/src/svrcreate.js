@@ -11,7 +11,7 @@ class Svrcreate extends Component{
 	handleChange = (event) => {
 		this.setState({selectGame: event.target.value});
 	};
-	handleNumChange = (event) =>{
+	handleNumChange = (event) => {
 		this.setState({num_players: event.target.value});
 	};
 	handleSubmission = () =>{
@@ -20,9 +20,8 @@ class Svrcreate extends Component{
 		gameType: this.state.selectGame,
 		num_players: this.state.num_players
 	};
-
 	//tell the server what room this client is using,
-	//in this case, it's the game PIN
+	//and update the states of the client side variables
 	this.props.socket.emit('startNewServer', data);
     this.props.OnHandle_server_created(true);
     this.props.OnHandle_selectGame(data.gameType);

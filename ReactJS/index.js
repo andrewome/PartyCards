@@ -104,11 +104,28 @@ io.on('connection', function(socket) {
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
 	
+	// authenticate user 
 	socket.on('connectToRoom', function(pin) {
-		socket.join(pin);
-		console.log(socket.id + " has joined room " + pin);
+		var i, l = PINNumList.length, pinExists = false;
+		for(i=0;i<l;i++) {
+			if(PINNumList[i] == pin) {
+				pinExists = true;
+				break;
+			}
+		}
 		
+		if(pinExists) {
+			socket.join(pin);
+			console.log(socket.id + " has joined room " + pin);
+		}
+		else {
+			socket.emit('AuthFailed');
+		}
 	});
 		
 });
 
+/* TODO:
+- remove players from array upon disconnection
+- 
+*/

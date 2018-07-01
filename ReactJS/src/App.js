@@ -31,6 +31,8 @@ class Body extends Component {
 	handlenum_players = (value) => {
 		this.setState({num_players: value});
 	}
+	
+	// gets game pin value from Init phase
 	handleGetPin = (value) => {
 		this.setState({server_PIN: value});
 	}
@@ -40,7 +42,8 @@ class Body extends Component {
 	socket = io("localhost:1520");
 
 	render() {
-		if(this.state.create_server === false && this.state.join_server === false){
+		// if create_server & join_server is false, show the main page
+		if(!this.state.create_server&& !this.state.join_server){
 			return (
 				<div>
 					<Title />
@@ -52,6 +55,7 @@ class Body extends Component {
 				</div>
 			);
 		}
+		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created){
 			return (
 				<div>
@@ -59,6 +63,7 @@ class Body extends Component {
 				</div>
 			);
 		}
+		// if create create_server is false and server_created is false, show server creation page
 		else if(this.state.create_server && !this.state.server_created ){
 			return(
 				<div>
@@ -72,7 +77,8 @@ class Body extends Component {
 				</div>
 			)
 		}
-
+		
+		// if join_server is true, show initialisation page
 		else if(this.state.join_server) {
 			return (
 				<div className="Init">
