@@ -1,3 +1,4 @@
+const Deck = require('./classes/Deck.js').default;
 var portNum = 1520;
 var express = require('express');
 var socket = require('socket.io');
@@ -16,7 +17,7 @@ io = socket(server);
 
 // Server side variables
 var connected_ids = [];
-var game_instances = [];
+var gameInstances = [];
 var PINNumList = [];
 
 // function to print all connected IDs that are in the server now
@@ -56,6 +57,15 @@ function generateGamePIN() {
 	return gamePIN;
 }
 
+function findGame(pin) {
+	var i, l = gameInstances.length;
+	for(i=0;i<l;i++) {
+		if(gameInstances[i].pinNo == pin) {
+			break;
+		}
+	}
+	return i;
+}
 
 // All backend functions here
 io.on('connection', function(socket) {
@@ -99,8 +109,9 @@ io.on('connection', function(socket) {
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1};
-		game_instances.push(instance);
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: new Deck};
+		instance.Deck.shuffle();
+		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
 	
@@ -123,10 +134,12 @@ io.on('connection', function(socket) {
 			socket.emit('AuthFail');
 		}
 	});
-		
+	
+	
 });
 
 /* TODO:
 - remove players from array upon disconnection
+- fix callback issues in joinserver
 - 
 */
