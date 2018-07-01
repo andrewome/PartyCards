@@ -110,7 +110,8 @@ io.on('connection', function(socket) {
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
 		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: new Deck};
-		instance.Deck.shuffle();
+		instance.deck.shuffle();
+		instance.deck.print_deck();
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
