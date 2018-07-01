@@ -8,11 +8,10 @@ import Sort from './sorting'
 class Taiti extends Component{
   constructor(props){
     super(props);
-    super(Player_list)
   }
   state = {
     server_PIN: "1729",
-    top_deck: "Cheat!",
+    top_deck:"Cheat!",
     message: "Select a card!",
     selected_cards: [],
     Discard_pile: [],
@@ -24,14 +23,7 @@ class Taiti extends Component{
   render(){
     //Initialisation
     var players = new Player_list(this.props.num_players);
-    /*var deck = new Deck();
-    deck.generate_deck();
-    deck.shuffle();
-    //Dealing out the cards
-    while(deck.size() != 0){
-      let card = deck.deal();
-      players.list[(deck.size()+1)%this.props.num_players].hand.push(card)
-    }
+    /*
     const playerhand = players.list[this.state.playerID].hand;
     //Sorts hand according to value
     Sort.byValue(players.list[0].hand);
