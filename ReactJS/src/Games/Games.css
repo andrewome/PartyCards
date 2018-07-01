@@ -26,9 +26,9 @@
   background-color: #00aaffff;
   font-family:  cursive;
 }
-.field{
-  margin: 10
+.label{
+  margin: 10px;
 }
-.button{
-  margin: 10
+.dropdown{
+  margin: 10px;
 }
