@@ -134,7 +134,7 @@ function generateGamePIN() {
 	return gamePIN;
 }
 
-function findGame(pin) {
+function findGameInstance(pin) {
 	var i, l = gameInstances.length;
 	for(i=0;i<l;i++) {
 		if(gameInstances[i].pinNo == pin) {
@@ -144,6 +144,16 @@ function findGame(pin) {
 	return i;
 }
 
+function findPINNumList(pin) {
+	var i, l = gameInstances.length;
+	for(i=0;i<l;i++) {
+		if(PINNumList[i].pinNo == pin) {
+			break;
+		}
+	}
+	return i;	
+}
+	
 // All backend functions here
 io.on('connection', function(socket) {
 	// When connected, output message onto server side console, add to list of connected clients
@@ -180,13 +190,13 @@ io.on('connection', function(socket) {
 				isTaken = false;
 			}
 		}
-		PINNumList.push(gamePIN);
+		PINNumList.push({pinNo: gamePIN, current_players: 0});
 		socket.emit('receiveGamePin', gamePIN);
 	});
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: new Deck(), players: new playerList(data.num_players)};
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), players: new playerList(data.num_players)};
 		
 		// initialising the deck
 		instance.deck.generate_deck();
@@ -206,16 +216,37 @@ io.on('connection', function(socket) {
 	socket.on('connectToRoom', function(pin) {
 		var i, l = PINNumList.length, pinExists = false;
 		for(i=0;i<l;i++) {
-			if(PINNumList[i] == pin) {
+			if(PINNumList[i].pinNo == pin) {
 				pinExists = true;
 				break;
 			}
 		}
 		
 		if(pinExists) {
-			socket.emit('AuthSuccess');
-			socket.join(pin);
-			console.log(socket.id + " has joined room " + pin);
+			// check whether current count inside the room is equal to the intended amount of players
+			var PinNumListIndex = findPINNumList(pin);
+			var gameInstancesIndex = findGameInstance(pin);
+			var isFull = false;
+			
+			//check whether server is full first
+			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
+				//reject this connection
+				socket.emit('AuthFail');
+				isFull = true;
+			}
+			
+			//if currently, there are x players when there is supposed to be x+1, we know this connection is the last one 
+			if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players - 1) {
+				// start the game upon connection of this last guy
+				socket.emit('startGame');
+			}
+			
+			if(!isFull) {
+				socket.emit('AuthSuccess');
+				PINNumList[PinNumListIndex].current_players++;
+				socket.join(pin);
+				console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
+			}
 		}
 		else {
 			socket.emit('AuthFail');
@@ -226,7 +257,7 @@ io.on('connection', function(socket) {
 });
 
 /* TODO:
-- remove players from array upon disconnection
+- remove players from arrays (instance and gamepinlist) upon disconnection
 - fix callback issues in joinserver
 - 
 */
