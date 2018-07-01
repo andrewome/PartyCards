@@ -1,10 +1,83 @@
-//const Deck = require('./classes/Deck.js').default;
-//var express = require('express');
-//var socket = require('socket.io');
-
 import express from 'express'
 import socket from 'socket.io'
-import { Deck } from './classes/Deck.js'
+
+class Deck {
+	constructor() {
+		this.deck = [];
+		this.dealt_cards = [];
+	}
+	
+	generate_deck() {
+		let card = (suit,value) => {
+			this.name = value.sym + ' of ' + suit
+			this.suit = suit
+			this.value = value
+			return {name:this.name, suit:this.suit, value:this.value}
+		};
+		//let values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
+		let values = [{sym :'2',num : 2},{sym :'3',num : 3},{sym :'4',num : 4},{sym :'5',num : 5},{sym :'6',num : 6},{sym :'7',num : 7},{sym :'8',num : 8}
+					,{sym :'9',num : 9},{sym :'10',num : 10},{sym :'J',num : 11},{sym :'Q',num : 12},{sym :'K',num : 13},{sym :'A',num : 14}];
+		let suits = ['Clubs','Diamonds','Hearts','Spades'];
+		for(let i = 0;i<suits.length;i++) {
+			for(let j = 0;j < values.length;j++) {
+				this.deck.push(card(suits[i],values[j]));
+			}
+		}
+	}
+	
+	print_deck() {
+		if(this.deck.length == 0){
+			console.log("The deck has not been generated")
+		}
+		else {
+			for(let i = 0;i<this.deck.length;i++){
+			console.log(this.deck[i].name)
+			}
+		}
+	}
+	shuffle() {
+		let index = this.deck.length, temp_val, rand_index
+		while(0 != index) {
+			rand_index = Math.floor(Math.random() * index)
+			index -= 1;
+			temp_val = this.deck[index]
+			this.deck[index] = this.deck[rand_index]
+			this.deck[rand_index] = temp_val
+		}
+	}
+	top_deck() {
+		return this.deck[0].name
+	}
+	deal() {
+		//let card be the top card of the deck
+		let card = this.deck.shift()
+		this.dealt_cards.push(card);
+		return card;
+	}
+	size () {
+		return this.deck.length
+	}
+}
+
+class playerList{
+	constructor(num_players){
+		this.list = [];
+		let player = (name) => {
+			this.name = name;
+			this.score = 0;
+			this.hand = [];
+		return {name:this.name, score:this.score, hand:this.hand}
+	}
+		for(let i = 1; i <=num_players;i++) {
+			this.list.push(player("Player " + i))
+		}
+	}
+	print_list() {
+	for(let i = 0;i<this.list.length;i++){
+		console.log(this.list[i])
+		}
+	}
+}
 
 var portNum = 1520;
 // App setup
@@ -113,10 +186,18 @@ io.on('connection', function(socket) {
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		let mydeck = new Deck();
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: mydeck};
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: new Deck(), players: new playerList(data.num_players)};
+		
+		// initialising the deck
+		instance.deck.generate_deck();
 		instance.deck.shuffle();
-		instance.deck.print_deck();
+		
+		// dealing out the cards
+		while(instance.deck.size() != 0) {
+			let card = instance.deck.deal();
+			instance.players.list[(instance.deck.size() + 1)]%instance.players.hand.push(card);
+		}
+		
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});

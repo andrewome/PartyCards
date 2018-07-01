@@ -1,3 +1,5 @@
+import React from 'react';
+
 class Deck {
 	constructor() {
 		this.deck = [];
@@ -45,7 +47,7 @@ class Deck {
 	top_deck() {
 		return this.deck[0].name
 	}
-	deal () {
+	deal() {
 		//let card be the top card of the deck
 		let card = this.deck.shift()
 		this.dealt_cards.push(card);
