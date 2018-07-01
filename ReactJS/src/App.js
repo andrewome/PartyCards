@@ -83,7 +83,10 @@ class Body extends Component {
 			return (
 				<div className="Init">
 					<Title/>
-						<JoinServer/>
+						<JoinServer socket = {this.socket}
+									server_PIN = {this.state.server_PIN}
+									OnHandleGetPin = {this.handleGetPin}
+						/>
 				</div>
 			);
 		}

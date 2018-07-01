@@ -104,7 +104,7 @@ io.on('connection', function(socket) {
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
 	
-	// authenticate user 
+	// authentication of user
 	socket.on('connectToRoom', function(pin) {
 		var i, l = PINNumList.length, pinExists = false;
 		for(i=0;i<l;i++) {
@@ -115,11 +115,12 @@ io.on('connection', function(socket) {
 		}
 		
 		if(pinExists) {
+			socket.emit('AuthSuccess');
 			socket.join(pin);
 			console.log(socket.id + " has joined room " + pin);
 		}
 		else {
-			socket.emit('AuthFailed');
+			socket.emit('AuthFail');
 		}
 	});
 		
