@@ -17,8 +17,8 @@ class JoinServer extends Component{
 		this.props.socket.on('AuthSuccess', () => {
 			alert('Successful');
 		});
-		this.props.socket.on('AuthFail', () => {
-			alert('Failed');
+		this.props.socket.on('AuthFail', (reason) => {
+			alert('Failed to connect. Reason: ' + reason);
 			window.location.reload(true);
 		});
 	}
