@@ -19,20 +19,26 @@ class Taiti extends Component {
 		playerID: "",
 		player_hand: []
 	}
-	
-	changeStateVariables(data) {
-		this.setState({instance: data});
-	}
-	
+
 	componentDidMount = () => {
 		this.props.socket.on('startGame', function(data) {
 			alert('The last man has joined! Game is now starting');
-			this.changeStateVariables(data);
+			for(var i=0;i<data.player.list.length;i++) {
+				if(data.player.list[i].id == this.props.socket.id) {
+					break;
+				}
+			}
+			if(data.player.list[i].id == this.props.socket.id) {
+				console.log('IDs match');
+			}
+			
+			this.setState({instance	  : data,
+						   player_hand: data.player.list[i].hand,
+						   playerID   : data.player.list[i].ID});
 		}.bind(this));
-		this.forceUpdate();
 	}
 
-	handleSelect_Card = (name) =>{
+	handleSelect_Card = (name) => {
 		this.setState({message: "You selected: " + name});
 	}
 	
@@ -64,6 +70,7 @@ class Taiti extends Component {
       </li>);*/
     return(
       <div className = "Parent">
+		<p> {this.state.instance.pinNo} </p>
         {/*}<Scoreboard server_PIN = {this.state.server_PIN}   GameName = "Cheat" num_players = {this.props.num_players}
         players = {players}
         />

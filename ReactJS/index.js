@@ -198,11 +198,11 @@ io.on('connection', function(socket) {
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), players: new player(data.num_players)};
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), player: new player(data.num_players)};
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
-	
+
 	// authentication of user
 	socket.on('connectToRoom', function(pin) {
 		
@@ -230,7 +230,7 @@ io.on('connection', function(socket) {
 			if(!isFull) {
 				socket.emit('AuthSuccess');
 				//add socket ID into player ID
-				gameInstances[gameInstancesIndex].players.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
+				gameInstances[gameInstancesIndex].player.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
 				//increment current number of players within the server
 				PINNumList[PinNumListIndex].current_players++;
 				socket.join(pin);
@@ -246,7 +246,7 @@ io.on('connection', function(socket) {
 					// dealing out the cards
 					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
-						gameInstances[gameInstancesIndex].players.list[(gameInstances[gameInstancesIndex].deck.size() + 1)]%gameInstances[gameInstancesIndex].players.hand.push(card);
+						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)]%gameInstances[gameInstancesIndex].player.hand.push(card);
 					}
 
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
