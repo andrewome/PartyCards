@@ -16,6 +16,7 @@ class Taiti extends Component{
     selected_cards: [],
     Discard_pile: [],
     playerID: 0
+    player_hand: []
   }
   handleSelect_Card = (name) =>{
     this.setState({message: "You selected: " + name});
