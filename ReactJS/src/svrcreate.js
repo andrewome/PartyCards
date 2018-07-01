@@ -26,8 +26,10 @@ class Svrcreate extends Component{
     this.props.OnHandle_server_created(true);
     this.props.OnHandle_selectGame(data.gameType);
     this.props.OnHandle_num_players(data.num_players);
+	//connect to said server
 	this.props.socket.emit('connectToRoom', data.pinNo);
 	}
+	
 	render() {
 		return ( 
 			<div className="Init">

@@ -59,22 +59,24 @@ class Deck {
 	}
 }
 
-class playerList{
+class player {
 	constructor(num_players){
 		this.list = [];
 		let player = (name) => {
 			this.name = name;
 			this.score = 0;
 			this.hand = [];
-		return {name:this.name, score:this.score, hand:this.hand}
-	}
+			this.id = "";
+			return {name:this.name, score:this.score, hand:this.hand, id:this.id};
+		}
 		for(let i = 1; i <=num_players;i++) {
-			this.list.push(player("Player " + i))
+			this.list.push(player("Player " + i));
 		}
 	}
+	
 	print_list() {
-	for(let i = 0;i<this.list.length;i++){
-		console.log(this.list[i])
+		for(let i = 0;i<this.list.length;i++) {
+			console.log(this.list[i]);
 		}
 	}
 }
@@ -196,7 +198,7 @@ io.on('connection', function(socket) {
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), players: new playerList(data.num_players)};
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), players: new player(data.num_players)};
 		
 		// initialising the deck
 		instance.deck.generate_deck();
@@ -214,6 +216,8 @@ io.on('connection', function(socket) {
 	
 	// authentication of user
 	socket.on('connectToRoom', function(pin) {
+		
+		//check if PIN number exists
 		var i, l = PINNumList.length, pinExists = false;
 		for(i=0;i<l;i++) {
 			if(PINNumList[i].pinNo == pin) {
@@ -223,37 +227,38 @@ io.on('connection', function(socket) {
 		}
 		
 		if(pinExists) {
-			// check whether current count inside the room is equal to the intended amount of players
 			var PinNumListIndex = findPINNumList(pin);
 			var gameInstancesIndex = findGameInstance(pin);
 			var isFull = false;
 			
-			//check whether server is full first
+			//check whether server is full first, if full reject connection
 			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
 				//reject this connection
-				socket.emit('AuthFail');
+				socket.emit('AuthFail', 'server is currently full');
 				isFull = true;
-			}
-			
-			//if currently, there are x players when there is supposed to be x+1, we know this connection is the last one 
-			if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players - 1) {
-				// start the game upon connection of this last guy
-				socket.emit('startGame');
 			}
 			
 			if(!isFull) {
 				socket.emit('AuthSuccess');
+				//add socket ID into player ID
+				gameInstances[gameInstancesIndex].players.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
+				//increment current number of players within the server
 				PINNumList[PinNumListIndex].current_players++;
 				socket.join(pin);
 				console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
-			}
+				
+				//check if game server is full, if full, start game
+				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
+					io.sockets.in(pin).emit('startGame');
+					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
+				}
+				
+			}		
 		}
 		else {
-			socket.emit('AuthFail');
+			socket.emit('AuthFail', 'server does not exist');
 		}
 	});
-	
-	
 });
 
 /* TODO:
