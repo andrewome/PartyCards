@@ -3,6 +3,7 @@ class Deck {
 		this.deck = [];
 		this.dealt_cards = [];
 	}
+	
 	generate_deck() {
 		let card = (suit,value) => {
 			this.name = value.sym + ' of ' + suit
@@ -55,4 +56,4 @@ class Deck {
 	}
 }
 
-module.exports = Deck;
+export default Deck;

@@ -1,8 +1,12 @@
-const Deck = require('./classes/Deck.js').default;
-var portNum = 1520;
-var express = require('express');
-var socket = require('socket.io');
+//const Deck = require('./classes/Deck.js').default;
+//var express = require('express');
+//var socket = require('socket.io');
 
+import express from 'express'
+import socket from 'socket.io'
+import { Deck } from './classes/Deck.js'
+
+var portNum = 1520;
 // App setup
 var app = express();
 var server = app.listen(portNum, function() { 
@@ -13,7 +17,7 @@ var server = app.listen(portNum, function() {
 app.use(express.static('public'));
 
 // Socket setup
-io = socket(server);
+let io = socket(server);
 
 // Server side variables
 var connected_ids = [];
@@ -109,7 +113,8 @@ io.on('connection', function(socket) {
 	
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: new Deck};
+		let mydeck = new Deck();
+		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, current_players: 1, deck: mydeck};
 		instance.deck.shuffle();
 		instance.deck.print_deck();
 		gameInstances.push(instance);
