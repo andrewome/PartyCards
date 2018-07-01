@@ -15,7 +15,7 @@ class Taiti extends Component{
     message: "Select a card!",
     selected_cards: [],
     Discard_pile: [],
-    playerID: 0
+    playerID: 0,
     player_hand: []
   }
   handleSelect_Card = (name) =>{
