@@ -199,17 +199,6 @@ io.on('connection', function(socket) {
 	// Receive game pin
 	socket.on('startNewServer', function(data) {
 		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), players: new player(data.num_players)};
-		
-		// initialising the deck
-		instance.deck.generate_deck();
-		instance.deck.shuffle();
-		
-		// dealing out the cards
-		while(instance.deck.size() != 0) {
-			let card = instance.deck.deal();
-			instance.players.list[(instance.deck.size() + 1)]%instance.players.hand.push(card);
-		}
-		
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
@@ -249,7 +238,18 @@ io.on('connection', function(socket) {
 				
 				//check if game server is full, if full, start game
 				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
-					io.sockets.in(pin).emit('startGame');
+					
+					// initialising the deck
+					gameInstances[gameInstancesIndex].deck.generate_deck();
+					gameInstances[gameInstancesIndex].deck.shuffle();
+		
+					// dealing out the cards
+					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
+						let card = gameInstances[gameInstancesIndex].deck.deal();
+						gameInstances[gameInstancesIndex].players.list[(gameInstances[gameInstancesIndex].deck.size() + 1)]%gameInstances[gameInstancesIndex].players.hand.push(card);
+					}
+
+					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
 					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}
 				

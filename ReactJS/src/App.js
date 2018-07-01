@@ -9,11 +9,11 @@ import io from 'socket.io-client'
 
 class Body extends Component {
 	state = {
-		server_PIN: "1111",
+		server_PIN: "",
 		create_server: false,
 		join_server: false,
 		server_created: false,
-		Game: "Taiti",
+		Game: "",
 	}
 
 	handlecreate_server = (value) => {
@@ -59,7 +59,10 @@ class Body extends Component {
 		else if(this.state.create_server && this.state.server_created){
 			return (
 				<div>
-					<Cheat num_players = {this.state.num_players} serverPIN = {this.state.server_PIN}/>
+					<Cheat num_players = {this.state.num_players}
+						   serverPIN = {this.state.server_PIN}
+						   socket = {this.socket}
+					/>
 				</div>
 			);
 		}
@@ -68,7 +71,7 @@ class Body extends Component {
 			return(
 				<div>
 					<Title />
-						<Svrcreate OnHandle_server_created = {this.handleserver_created }
+						<Svrcreate OnHandle_server_created = {this.handleserver_created}
 								   OnHandle_selectGame = {this.handleselectGame}
 								   OnHandle_num_players = {this.handlenum_players}
 								   server_PIN = {this.state.server_PIN}
@@ -86,6 +89,8 @@ class Body extends Component {
 						<JoinServer socket = {this.socket}
 									server_PIN = {this.state.server_PIN}
 									OnHandleGetPin = {this.handleGetPin}
+									OnHandle_server_created = {this.handleserver_created}
+									OnHandle_create_server = {this.handlecreate_server}
 						/>
 				</div>
 			);

@@ -14,9 +14,12 @@ class JoinServer extends Component{
 	joinServer = () => {
 		var successful;
 		this.props.socket.emit('connectToRoom', this.state.pinNo);
-		this.props.socket.on('AuthSuccess', () => {
-			alert('Successful');
-		});
+		this.props.socket.on('AuthSuccess', function() {
+			console.log('Success in joining server' + this.state.pinNo);
+			this.props.OnHandle_server_created(true);
+			this.props.OnHandle_create_server(true);
+		}.bind(this));
+		
 		this.props.socket.on('AuthFail', (reason) => {
 			alert('Failed to connect. Reason: ' + reason);
 			window.location.reload(true);

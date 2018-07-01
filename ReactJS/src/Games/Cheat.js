@@ -5,23 +5,38 @@ import Player_list from './Player_list';
 //import Deck from './Deck';
 import Sort from './sorting'
 
-class Taiti extends Component{
-  constructor(props){
-    super(props);
-  }
-  state ={
-    server_PIN: this.props.serverPIN,
-    top_deck: "Cheat!",
-    message: "Select a card!",
-    selected_cards: [],
-    Discard_pile: [],
-    playerID: 0,
-    player_hand: []
-  }
-  handleSelect_Card = (name) =>{
-    this.setState({message: "You selected: " + name});
-  }
-  render(){
+class Taiti extends Component {
+	constructor(props){
+		super(props);
+	}
+	state = {
+		instance: {},
+		server_PIN: this.props.serverPIN,
+		top_deck: "Cheat!",
+		message: "Select a card!",
+		selected_cards: [],
+		Discard_pile: [],
+		playerID: "",
+		player_hand: []
+	}
+	
+	changeStateVariables(data) {
+		this.setState({instance: data});
+	}
+	
+	componentDidMount = () => {
+		this.props.socket.on('startGame', function(data) {
+			alert('The last man has joined! Game is now starting');
+			this.changeStateVariables(data);
+		}.bind(this));
+		this.forceUpdate();
+	}
+
+	handleSelect_Card = (name) =>{
+		this.setState({message: "You selected: " + name});
+	}
+	
+	render() {
     /*
     //Initialisation
     var players = new Player_list(this.props.num_players);
