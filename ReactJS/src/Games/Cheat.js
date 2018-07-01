@@ -21,9 +21,10 @@ class Taiti extends Component{
     this.setState({message: "You selected: " + name});
   }
   render(){
+    /*
     //Initialisation
     var players = new Player_list(this.props.num_players);
-    /*var deck = new Deck();
+    var deck = new Deck();
     deck.generate_deck();
     deck.shuffle();
     //Dealing out the cards
@@ -47,17 +48,17 @@ class Taiti extends Component{
       </li>);*/
     return(
       <div className = "Parent">
-        <Scoreboard server_PIN = {this.state.server_PIN}   GameName = "Cheat" num_players = {this.props.num_players}
+        {/*}<Scoreboard server_PIN = {this.state.server_PIN}   GameName = "Cheat" num_players = {this.props.num_players}
         players = {players}
         />
         <div className = "p1">
           <p>{players.list[0].name}</p>
-          {/*}{listHand}{*/}
+        {listHand}
           <button className = "button">Call Bluff!</button>
         </div>
         <p className = "p1">{this.state.message}</p>
-          {/*}{listCards}{*/}
-        <h1 className = "discardpile">{this.state.top_deck}</h1>
+        {listCards}
+        <h1 className = "discardpile">{this.state.top_deck}</h1>{*/}
       </div>
     );
   }
