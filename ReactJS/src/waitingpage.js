@@ -6,7 +6,7 @@ class WaitingPage extends Component{
     super(props);
   }
   return(){
-    <h3>Room pin: </h3>
+    <h3>Room pin:  </h3>
     <p>Waiting for players....</p>
   }
 }
