@@ -246,7 +246,7 @@ io.on('connection', function(socket) {
 					// dealing out the cards
 					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
-						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)]%gameInstances[gameInstancesIndex].player.hand.push(card);
+						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
 
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
