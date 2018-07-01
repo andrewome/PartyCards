@@ -4,7 +4,7 @@ import Svrcreate from './svrcreate';
 import JoinServer from './joinserver';
 import Title from './title';
 import Init from './Init';
-import Taiti from './Games/taiti'
+import Cheat from './Games/Cheat'
 import io from 'socket.io-client'
 
 class Body extends Component {
@@ -15,7 +15,7 @@ class Body extends Component {
 		server_created: false,
 		Game: "Taiti",
 	}
-	
+
 	handlecreate_server = (value) => {
 		this.setState({create_server: value});
 	}
@@ -31,12 +31,12 @@ class Body extends Component {
 	handlenum_players = (value) => {
 		this.setState({num_players: value});
 	}
-	
+
 	// gets game pin value from Init phase
 	handleGetPin = (value) => {
 		this.setState({server_PIN: value});
 	}
-	
+
 	// Make client connection to server
 	// Don't forget to change localhost to your actual URL!
 	socket = io("localhost:1520");
@@ -59,7 +59,7 @@ class Body extends Component {
 		else if(this.state.create_server && this.state.server_created){
 			return (
 				<div>
-					<Taiti num_players = {this.state.num_players}/>
+					<Cheat num_players = {this.state.num_players} serverPIN = {this.state.server_PIN}/>
 				</div>
 			);
 		}
@@ -77,7 +77,7 @@ class Body extends Component {
 				</div>
 			)
 		}
-		
+
 		// if join_server is true, show initialisation page
 		else if(this.state.join_server) {
 			return (
