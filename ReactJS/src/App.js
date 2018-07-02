@@ -8,6 +8,11 @@ import Cheat from './Games/Cheat'
 import io from 'socket.io-client'
 
 class Body extends Component {
+	
+	// Make client connection to server
+	// Don't forget to change localhost to your actual URL!
+	socket = io("localhost:1520");
+	
 	state = {
 		server_PIN: "",
 		create_server: false,
@@ -36,10 +41,6 @@ class Body extends Component {
 	handleGetPin = (value) => {
 		this.setState({server_PIN: value});
 	}
-
-	// Make client connection to server
-	// Don't forget to change localhost to your actual URL!
-	socket = io("localhost:1520");
 
 	render() {
 		// if create_server & join_server is false, show the main page

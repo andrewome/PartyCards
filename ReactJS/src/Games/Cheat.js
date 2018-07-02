@@ -9,8 +9,9 @@ class Taiti extends Component {
 	constructor(props){
 		super(props);
 	}
+	
 	state = {
-		whoseTurn: NaN,
+		whoseTurn: -1,
 		turn_phase: 0, //0: select phase, 1: cheat phase
 		server_PIN: this.props.serverPIN,
 		last_action_tb: "Cheat!",
@@ -23,6 +24,37 @@ class Taiti extends Component {
 		playerID: NaN,
 		player_hand: [],
 		player_index: NaN,
+	}
+	
+	symToNum = (sym) => {
+		switch(sym) {
+			case '2':
+				return 2;
+			case '3':
+				return 3; 
+			case '4':
+				return 4;
+			case '5':
+				return 5;
+			case '6':
+				return 6;
+			case '7':
+				return 7;
+			case '8':
+				return 8;
+			case '9':
+				return 9;
+			case '10':
+				return 10; 
+			case 'J':
+				return 11; 
+			case 'Q':
+				return 12;
+			case 'K':
+				return 13;
+			case 'A':
+				return 14;
+		}
 	}
 	
 	numtoEng = (num) => {
@@ -45,31 +77,40 @@ class Taiti extends Component {
 	//This function handles the values submitted during phase 0 or user turn phase
 	handleSubmit = (e) => {
 		var firstTurn = false;
+		var good = true;
 		// checking of declared_cards is empty
-		if(this.state.declared_cards.num == -1 && this.state.declared_cards.val == -1) {
+		if(parseInt(this.state.declared_cards.num) == -1 && this.state.declared_cards.val == -1) {
 			firstTurn = true;
 		}
 		
 		//check if number of cards declared == number of cards selected
-		if(parseInt(this.refs.num.value) != this.state.selected_cards.length){
+		if(parseInt(this.refs.num.value) != this.state.selected_cards.length) {
 			alert('Number of cards declared not equal to number of cards selected!');
+			good = false;
 		}
 		// check if cards declared is within +/- 1 of the previously declared card
-		if(!firstTurn) {
-			if(this.refs.val.value != this.state.declared_cards.val || (this.refs.val.value + 1)%12 + 2 != this.state.declared_cards.val || (this.refs.val.value - 1)%12 + 2 != this.state.declared_cards.val) {
-				alert('The cards declared are not within +/- 1 of the previously declared card!');
+		else if(!firstTurn) {
+				var minusone = (this.symToNum(this.refs.val.value) - 2 - 1)%13;
+				if(minusone < 0) {
+					minusone +=15;
+				}
+			if(!(this.symToNum(this.refs.val.value) + 2 - 1)%13 == this.symToNum(this.state.declared_cards.val) || this.symToNum(this.refs.val.value) == this.symToNum(this.state.declared_cards.val) || minusone == this.symToNum(this.state.declared_cards.val)) {
+				alert('The number of the cards you declared (' + this.symToNum(this.refs.val.value) + ') are not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val);
+				good = false;
 			}
 		}
+		
 		//if everything passes, we can submit the move to the server
-		else {
+		if(good) {
 			this.props.socket.emit('cheatSubmitClientPhase0', {
 				player_index: this.state.player_index,
 				pinNo: this.state.server_PIN,
-				declared_cards: {num: this.refs.num, val: this.refs.val},
+				declared_cards: {num: this.refs.num.value, val: this.refs.val.value},
 				selected_cards: this.state.selected_cards,
 			});
+			//clear selected cards hand
+			this.setState({selected_cards: []});
 		}
-		console.log('1');
 		//console.log(this.refs.title.value);
 		e.preventDefault();
 	}
@@ -79,7 +120,8 @@ class Taiti extends Component {
 		this.props.socket.emit('cheatSubmitClientPhase1', {
 			player_index: this.state.player_index,
 			pinNo: this.state.server_PIN,
-			cheatVote: false,
+			whoseTurn: this.state.whoseTurn,
+			cheatVote: true,
 		});
 	}
 	
@@ -89,7 +131,7 @@ class Taiti extends Component {
 			player_index: this.state.player_index,
 			pinNo: this.state.server_PIN,
 			whoseTurn: this.state.whoseTurn,
-			cheatVote: true,
+			cheatVote: false,
 		});
 	}
 	
@@ -132,6 +174,7 @@ class Taiti extends Component {
 	}
 	
 	componentDidMount = () => {
+		
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
 			alert('The last man has joined! Game is now starting');
@@ -150,19 +193,18 @@ class Taiti extends Component {
 				playerID: data.player.list[i].ID
 			});
 		}.bind(this));
-		
+					
 		//Phase 0 actions
 		this.props.socket.on('cheatSubmitServerPhase0', function(data) {		
-
 			//update the shared states (turn_phase, whoseTurn, discard_pile, declared_cards)
-			let msg = "Player " + (this.state.whoseTurn + 1) + " plays " + data.declared_cards.num + " cards of " + data.declared_cards.val + "s";
+			let msg = "Player " + (this.state.whoseTurn + 1) + " plays " + data.declared_cards.num + " cards of " + data.declared_cards.val + "(s)";
 			this.setState ({
 				turn_phase: data.turn_phase,
 				Discard_pile: data.Discard_pile,
 				declared_cards: data.declared_cards,
 				last_action_tb: msg,
 			});
-			
+						
 			//update private states
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
@@ -174,27 +216,26 @@ class Taiti extends Component {
 					player_hand: data.player_hand,
 				});
 			}
-		
-		
 		}.bind(this));
-		
+			
 		//Phase 1 actions
 		this.props.socket.on('cheatSubmitServerPhase1', function(data, msg) {
-			
+						
 			//update shared states
 			this.setState ({
+				whoseTurn: data.whoseTurn,
 				turn_phase: data.turn_phase,
 				Discard_pile: data.Discard_pile,
 				last_action_tb: msg,
 			});
-			
+						
 			//update private states
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
 					break;
 				}
 			}
-			
+						
 			if(i == data.player_index) {
 				this.setState ({
 					player_hand: data.player_hand,
@@ -202,7 +243,7 @@ class Taiti extends Component {
 			}
 		}.bind(this));
 	}
-	
+
 	render() {
 		var valoptions = ['2','3','4','5','6','7','8','10','J','Q','K','A']
 		var numoptions = ['1','2','3','4']
