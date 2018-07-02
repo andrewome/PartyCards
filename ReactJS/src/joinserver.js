@@ -10,7 +10,7 @@ class JoinServer extends Component{
 		this.setState({pinNo: event.target.value});
 	};
 	
-	//buggy without a reload. don't know why lol
+	//buggy due to callback functions
 	joinServer = () => {
 		var successful;
 		this.props.socket.emit('connectToRoom', this.state.pinNo);
