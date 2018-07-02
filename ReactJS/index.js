@@ -292,8 +292,6 @@ io.on('connection', function(socket) {
 	//When the selected player submits his declared & selected cards (after passing client checks)
 	//we want to update his hand, discard pile, declared cards and change turn phase to 1
 	socket.on('cheatSubmitClientPhase0', function(data) {
-		console.log('SubmitClientPhase0');
-		//console.log(data)
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		
 		//remove cards from player's hand and add to discard pile
@@ -308,11 +306,10 @@ io.on('connection', function(socket) {
 
 		//add declared cards
 		gameInstances[gameInstanceIndex].declared_cards = data.declared_cards;
-		
+
 		//update the turn phase to phase 1
 		gameInstances[gameInstanceIndex].turn_phase = 1;	
 		io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase0', gameInstances[gameInstanceIndex]);
-		//console.log(gameInstances[gameInstanceIndex]);
 	});
 	
 	
@@ -320,35 +317,32 @@ io.on('connection', function(socket) {
 	//else, 1st person to send 'is cheating', check with actual card
 	//and continue to next round
 	socket.on('cheatSubmitClientPhase1', function(data) {
-		console.log('cheatSubmitClientPhase1');
 		//console.log(data);
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0, i
+		
 		//if this client thinks that he's a cheater, check if he really did cheat
 		if(data.cheatVote) {
 			var cheated = false;
 			for(i=0;i<gameInstances[gameInstanceIndex].declared_cards.num;i++) {
-				if(gameInstances[gameInstanceIndex].Discard_pile[gameInstances[gameInstanceIndex].Discard_pile.length - 1 - i].value.num != gameInstances[gameInstanceIndex].declared_cards.val) {
+				//check from the back of the array, because discarded cards are pushed there
+				if(gameInstances[gameInstanceIndex].Discard_pile[gameInstances[gameInstanceIndex].Discard_pile.length - 1 - i].value.sym != gameInstances[gameInstanceIndex].declared_cards.val) {
 					cheated = true;
 					break;
 				}
 			}
-			
+
 			//if player really cheated, give discard pile to whoseturn (the person's turn)
 			if(cheated) {
-				console.log(gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.length);
 				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
 					gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
 				}
-				console.log(gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.length);
 			}
-			// else give discard pile to accusor
+			// else give discard pile to accusor (player_index)
 			else {
-				console.log(gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length);
 				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
 					gameInstances[gameInstanceIndex].player.list[data.player_index].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
 				}
-				console.log(gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length);
 			}
 			
 			//empty discard pile
@@ -391,7 +385,19 @@ io.on('connection', function(socket) {
 				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msg);
 				//console.log(gameInstances[gameInstanceIndex]);
 			}
-		}	
+		}
+		
+		var winner_found = false;
+		//Check if there's any winners (empty hands) past this stage
+		for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].hand.length == 0) {
+				winner_found = true;
+				break;
+			}
+		}
+		if(winner_found) {
+			io.sockets.in(data.pinNo).emit('cheatWinnerFound', i);
+		}
 	});
 });
 

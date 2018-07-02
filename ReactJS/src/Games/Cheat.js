@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import './Games.css';
 import Scoreboard from './scoreboard';
-//import Player_list from './Player_list';
-//import Deck from './Deck';
 import Sort from './sorting'
 
-class Taiti extends Component {
+class Cheat extends Component {
 	constructor(props){
 		super(props);
 	}
@@ -21,9 +19,9 @@ class Taiti extends Component {
 		num: 2,
 		declared_cards: {num: -1, val: -1},
 		Discard_pile: [],
-		playerID: NaN,
+		playerID: "",
 		player_hand: [],
-		player_index: NaN,
+		player_index: -1,
 	}
 	
 	symToNum = (sym) => {
@@ -90,12 +88,17 @@ class Taiti extends Component {
 		}
 		// check if cards declared is within +/- 1 of the previously declared card
 		else if(!firstTurn) {
-				var minusone = (this.symToNum(this.refs.val.value) - 2 - 1)%13;
-				if(minusone < 0) {
-					minusone +=15;
-				}
-			if(!(this.symToNum(this.refs.val.value) + 2 - 1)%13 == this.symToNum(this.state.declared_cards.val) || this.symToNum(this.refs.val.value) == this.symToNum(this.state.declared_cards.val) || minusone == this.symToNum(this.state.declared_cards.val)) {
+			var minusone = (this.symToNum(this.refs.val.value) - 2 - 1)%13;
+			if(minusone < 0) {
+				minusone += 13;
+			}
+			minusone += 2;
+
+			if(!((this.symToNum(this.state.declared_cards.val) - 2 + 1)%13 + 2) == this.symToNum(this.refs.val.value) || this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value) || minusone == this.symToNum(this.refs.val.value)) {
 				alert('The number of the cards you declared (' + this.symToNum(this.refs.val.value) + ') are not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val);
+				console.log(this.refs.val.value + ' ' + typeof(this.symToNum(this.state.declared_cards.val)) + ' ' + this.symToNum(this.state.declared_cards.val));
+				console.log((this.symToNum(this.refs.val.value) - 2 + 1)%13 + 2);
+				console.log(minusone);
 				good = false;
 			}
 		}
@@ -105,7 +108,7 @@ class Taiti extends Component {
 			this.props.socket.emit('cheatSubmitClientPhase0', {
 				player_index: this.state.player_index,
 				pinNo: this.state.server_PIN,
-				declared_cards: {num: this.refs.num.value, val: this.refs.val.value},
+				declared_cards: {num: parseInt(this.refs.num.value), val: this.refs.val.value},
 				selected_cards: this.state.selected_cards,
 			});
 			//clear selected cards hand
@@ -173,8 +176,7 @@ class Taiti extends Component {
 		}
 	}
 	
-	componentDidMount = () => {
-		
+	componentDidMount = () => {	
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
 			alert('The last man has joined! Game is now starting');
@@ -205,17 +207,16 @@ class Taiti extends Component {
 				last_action_tb: msg,
 			});
 						
-			//update private states
+			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
 					break;
 				}
 			}
-			if(i == data.player_index) {
-				this.setState ({
-					player_hand: data.player_hand,
-				});
-			}
+			
+			this.setState ({
+				player_hand: data.player.list[i].hand,
+			});
 		}.bind(this));
 			
 		//Phase 1 actions
@@ -229,18 +230,25 @@ class Taiti extends Component {
 				last_action_tb: msg,
 			});
 						
-			//update private states
+			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
 					break;
 				}
 			}
 						
-			if(i == data.player_index) {
-				this.setState ({
-					player_hand: data.player_hand,
-				});
-			}
+			this.setState ({
+				player_hand: data.player.list[i].hand,
+			});
+		}.bind(this));
+		
+		//When there is a winner
+		this.props.socket.on('cheatWinnerFound', function(player_index) {
+			var msg = 'Player ' + (player_index + 1) + ' has won the game!!!!!!';
+			this.setState({last_action_tb: msg});
+			alert(msg);
+			alert('Shutting down the server. Re-create the server from the main page.');
+			window.location.reload(true);
 		}.bind(this));
 	}
 
@@ -308,4 +316,4 @@ class Taiti extends Component {
 	}
 }
 
-export default Taiti;
+export default Cheat;
