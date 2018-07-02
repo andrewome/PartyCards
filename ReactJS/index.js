@@ -239,45 +239,51 @@ io.on('connection', function(socket) {
 		if(pinExists) {
 			var PinNumListIndex = findPINNumList(pin);
 			var gameInstancesIndex = findGameInstance(pin);
-			var isFull = false;
+			var isFull = false, isInitialised = true;
 			
-			//check whether server is full first, if full reject connection
-			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
-				//reject this connection
-				socket.emit('AuthFail', 'server is currently full');
-				isFull = true;
+			//check if the gameInstance has already been initialised. Will crash if it is not.
+			if(typeof(gameInstances[gameInstancesIndex] === undefined)) {
+				isInitialised = false;
 			}
 			
-			if(!isFull) {
-				socket.emit('AuthSuccess');
-				//add socket ID into player ID
-				gameInstances[gameInstancesIndex].player.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
-				//increment current number of players within the server
-				PINNumList[PinNumListIndex].current_players++;
-				socket.join(pin);
-				console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
-				
-				//check if game server is full, if full, start game
-				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
-					
-					// initialising the deck
-					gameInstances[gameInstancesIndex].deck.generate_deck();
-					gameInstances[gameInstancesIndex].deck.shuffle();
-		
-					// dealing out the cards
-					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
-						let card = gameInstances[gameInstancesIndex].deck.deal();
-						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
-					}
-
-					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
-					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
+			//check whether server is full first, if full reject connection
+			if(isInitialised) {
+				if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
+					//reject this connection
+					socket.emit('AuthFail', 'server is currently full');
+					isFull = true;
 				}
-				
+			
+				if(!isFull) {
+					socket.emit('AuthSuccess');
+					//add socket ID into player ID
+					gameInstances[gameInstancesIndex].player.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
+					//increment current number of players within the server
+					PINNumList[PinNumListIndex].current_players++;
+					socket.join(pin);
+					console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
+					
+					//check if game server is full, if full, start game
+					if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
+						
+						// initialising the deck
+						gameInstances[gameInstancesIndex].deck.generate_deck();
+						gameInstances[gameInstancesIndex].deck.shuffle();
+			
+						// dealing out the cards
+						while(gameInstances[gameInstancesIndex].deck.size() != 0) {
+							let card = gameInstances[gameInstancesIndex].deck.deal();
+							gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
+						}
+
+						io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
+						console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
+					}
+				}
 			}		
-		}
-		else {
-			socket.emit('AuthFail', 'server does not exist');
+			else {
+				socket.emit('AuthFail', 'server does not exist');
+			}
 		}
 	});
 
