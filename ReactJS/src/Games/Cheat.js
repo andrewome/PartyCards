@@ -11,7 +11,7 @@ class Cheat extends Component {
 	state = {
 		whoseTurn: -1,
 		turn_phase: 0, //0: select phase, 1: cheat phase
-		server_PIN: this.props.serverPIN,
+		server_PIN: this.props.server_PIN,
 		last_action_tb: "Cheat!",
 		message: "Starting game...",
 		selected_cards: [],
@@ -19,7 +19,7 @@ class Cheat extends Component {
 		num: 2,
 		declared_cards: {num: -1, val: -1},
 		Discard_pile: [],
-		playerID: "",
+		playerID: -1,
 		player_hand: [],
 		player_index: -1,
 	}
@@ -88,17 +88,17 @@ class Cheat extends Component {
 		}
 		// check if cards declared is within +/- 1 of the previously declared card
 		else if(!firstTurn) {
-			var minusone = (this.symToNum(this.refs.val.value) - 2 - 1)%13;
+			var minusone = (this.symToNum(this.state.declared_cards.val) - 2 - 1)%13;
 			if(minusone < 0) {
 				minusone += 13;
 			}
-			minusone += 2;
 
-			if(!((this.symToNum(this.state.declared_cards.val) - 2 + 1)%13 + 2) == this.symToNum(this.refs.val.value) || this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value) || minusone == this.symToNum(this.refs.val.value)) {
-				alert('The number of the cards you declared (' + this.symToNum(this.refs.val.value) + ') are not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val);
-				console.log(this.refs.val.value + ' ' + typeof(this.symToNum(this.state.declared_cards.val)) + ' ' + this.symToNum(this.state.declared_cards.val));
-				console.log((this.symToNum(this.refs.val.value) - 2 + 1)%13 + 2);
-				console.log(minusone);
+			var bool1 = (((this.symToNum(this.state.declared_cards.val) - 2 + 1)%13 + 2) == this.symToNum(this.refs.val.value));
+			var bool2 = (this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value));
+			var bool3 = (minusone == this.symToNum(this.refs.val.value));	
+
+			if(!(bool1 || bool2 || bool3)) {
+				alert('The number of the cards you declared (' + this.refs.val.value + ') are not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val);
 				good = false;
 			}
 		}
@@ -189,9 +189,9 @@ class Cheat extends Component {
 			this.setState ({
 				turn_phase: 0,
 				server_PIN: data.pinNo,
-				whoseTurn: data.whoseTurn,
+				whoseTurn: parseInt(data.whoseTurn),
 				player_hand: data.player.list[i].hand,
-				player_index: i,
+				player_index: parseInt(i),
 				playerID: data.player.list[i].ID
 			});
 		}.bind(this));

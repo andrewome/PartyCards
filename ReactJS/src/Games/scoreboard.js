@@ -13,7 +13,7 @@ class Scoreboard extends Component {
 				<p>Player: {this.props.player_index + 1}</p>
 				<p>Room PIN: {this.props.server_PIN}</p>
 				<p>Game being played: {this.props.GameName}</p>
-				<p>Whose turn is it: Player {this.props.whoseTurn + 1}</p>
+				<p>Waiting on: Player {this.props.whoseTurn + 1}</p>
 			</div>
 		);
 	}

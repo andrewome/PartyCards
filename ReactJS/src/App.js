@@ -61,7 +61,7 @@ class Body extends Component {
 			return (
 				<div>
 					<Cheat num_players = {this.state.num_players}
-						   serverPIN = {this.state.server_PIN}
+						   server_PIN = {this.state.server_PIN}
 						   socket = {this.socket}
 					/>
 				</div>
