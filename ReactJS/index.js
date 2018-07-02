@@ -67,6 +67,7 @@ class player {
 			this.score = 0;
 			this.hand = [];
 			this.id = "";
+			this.cheatVote = -1; //0 = false, 1 = true
 			return {name:this.name, score:this.score, hand:this.hand, id:this.id};
 		}
 		for(let i = 1; i <=num_players;i++) {
@@ -77,6 +78,12 @@ class player {
 	print_list() {
 		for(let i = 0;i<this.list.length;i++) {
 			console.log(this.list[i]);
+		}
+	}
+	
+	resetCheatVotes() {
+		for(var i=0;i<this.list.length;i++) {
+			this.list[i].cheatVote = -1;
 		}
 	}
 }
@@ -171,6 +178,7 @@ io.on('connection', function(socket) {
 		//printConnectedIDs();
 	});
 	
+	//initial check if generated game pin is unique
 	socket.on('checkGamePin', function() {
 		var gamePIN = generateGamePIN(), isTaken = false;
 		var i, l = PINNumList.length;
@@ -196,9 +204,22 @@ io.on('connection', function(socket) {
 		socket.emit('receiveGamePin', gamePIN);
 	});
 	
-	// Receive game pin
+	// create a room
 	socket.on('startNewServer', function(data) {
-		var instance = {pinNo: data.pinNo, gametype: data.gametype, num_players: data.num_players, deck: new Deck(), player: new player(data.num_players)};
+		//randomly generate which player will start first
+		var whoseTurn = Math.floor((Math.random()*100) + 1)%data.num_players;
+		var instance = {
+			whoseTurn: whoseTurn,
+			pinNo: data.pinNo,
+			gametype: data.gametype,
+			num_players: data.num_players,
+			deck: new Deck(),
+			player: new player(data.num_players),
+			Discard_pile: [],
+			declared_cards: {},
+			turn_phase: 0,
+		};
+
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
@@ -259,10 +280,109 @@ io.on('connection', function(socket) {
 			socket.emit('AuthFail', 'server does not exist');
 		}
 	});
+
+	
+	/*-----------------------
+	|						 |
+	|						 |
+	|'Cheat!' functions here |
+	|						 |
+	|						 |
+	------------------------*/
+	//When the selected player submits his declared & selected cards (after passing client checks)
+	//we want to update his hand, discard pile, declared cards and change turn phase to 1
+	socket.on('cheatSubmitClientPhase0', function(data) {
+		console.log('Received submission from client');
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		
+		//remove cards from player's hand and add to discard pile
+		for(var i=0;i<data.selected_cards.length;i++) {
+			gameInstances[gameInstanceIndex].Discard_pile.push(data.selected_cards[i]);
+			for(var j=0;j<gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;j++) {
+				if(data.selected_cards[i] == gameInstances[gameInstanceIndex].player.list[data.player_index].hand[j]) {
+					gameInstances[gameInstanceIndex].player.list[data.player_index].hand.splice(j, 1);
+				}
+			}
+		}
+		
+		//add declared cards
+		gameInstances[gameInstanceIndex].declared_cards = data.declared_cards;
+		
+		//update the turn phase to phase 1
+		gameInstances[gameInstanceIndex].turn_phase = 1;	
+		io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase0', gameInstances[gameInstanceIndex]);
+	});
+	
+	
+	//If we get num_players # of not cheating, continue to next round
+	//else, 1st person to send 'is cheating', check with actual card
+	//and continue to next round
+	socket.on('cheatSubmitClientPhase1', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var counter = 0, i
+		
+		//if this client thinks that he's a cheater, check if he really did cheat
+		if(data.cheatVote) {
+			var cheated = false;
+			for(i=0;i<gameInstances[gameInstanceIndex].declared_cards.num;i++) {
+				if(gameInstances[gameInstanceIndex].Discard_pile[gameInstances[gameInstanceIndex].Discard_pile.length - 1 - i].value.num != gameInstances[gameInstanceIndex].declared_cards.val) {
+					cheated = true;
+					break;
+				}
+			}
+			
+			//if player really cheated, give discard pile to whoseturn (the person's turn)
+			if(cheated) {
+				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
+					gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
+				}
+			}
+			// else give discard pile to accusor
+			else {
+				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
+					gameInstances[gameInstanceIndex].player.list[data.player_index].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
+				}
+			}
+			
+			//empty discard pile
+			gameInstances[gameInstanceIndex].Discard_pile.splice(0, gameInstances[gameInstanceIndex].Discard_pile.length);
+			
+			//generate messages
+			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty!";
+			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time!";
+			
+			//change phase to 0 + next person's turn
+			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+			gameInstances[gameInstanceIndex].turn_phase = 0;
+			if(cheated) {
+				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msgCheated);
+			}
+			else {
+				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msgNotCheated);
+			}
+		}
+		// else add to the counter
+		else {
+			gameInstances[gameInstanceIndex].player.list[data.player_index].cheatVote = 0;
+			//check whether it equals to num_players
+			for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {
+				if(gameInstances[gameInstanceIndex].player.list[i].voteCheat == 0) {
+					counter++;
+				}
+			}
+			//if it equals, send message to room for next turn, and set phase back to 0
+			if(counter == gameInstances[gameInstanceIndex].num_players) {
+				var msg = "Everyone voted that player " + (data.whoseTurn + 1) + " is not cheating! Moving on to the next round!";
+				gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+				gameInstances[gameInstanceIndex].turn_phase = 0;
+				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msg);
+			}
+		}	
+	});
 });
 
 /* TODO:
 - remove players from arrays (instance and gamepinlist) upon disconnection
 - fix callback issues in joinserver
-- 
+- server crashes when someone tries to join at svrcreate page
 */
