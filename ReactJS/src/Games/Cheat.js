@@ -7,7 +7,7 @@ class Cheat extends Component {
 	constructor(props){
 		super(props);
 	}
-	
+
 	state = {
 		whoseTurn: -1,
 		turn_phase: 0, //0: select phase, 1: cheat phase
@@ -23,38 +23,38 @@ class Cheat extends Component {
 		player_hand: [],
 		player_index: -1,
 	}
-	
+
 	symToNum = (sym) => {
 		switch(sym) {
 			case '2':
-				return 2;
+				return 0;
 			case '3':
-				return 3; 
+				return 1;
 			case '4':
-				return 4;
+				return 2;
 			case '5':
-				return 5;
+				return 3;
 			case '6':
-				return 6;
+				return 4;
 			case '7':
-				return 7;
+				return 5;
 			case '8':
-				return 8;
+				return 6;
 			case '9':
-				return 9;
+				return 7;
 			case '10':
-				return 10; 
+				return 8;
 			case 'J':
-				return 11; 
+				return 9;
 			case 'Q':
-				return 12;
+				return 10;
 			case 'K':
-				return 13;
+				return 11;
 			case 'A':
-				return 14;
+				return 12;
 		}
 	}
-	
+
 	numtoEng = (num) => {
 		switch(num){
 			case '1':
@@ -71,7 +71,7 @@ class Cheat extends Component {
 	handleSelect_Card = (card) => {
 		this.setState({message: "You selected: " + card.name});
 	}
-	
+
 	//This function handles the values submitted during phase 0 or user turn phase
 	handleSubmit = (e) => {
 		var firstTurn = false;
@@ -79,12 +79,6 @@ class Cheat extends Component {
 		// checking of declared_cards is empty
 		if(parseInt(this.state.declared_cards.num) == -1 && this.state.declared_cards.val == -1) {
 			firstTurn = true;
-		}
-		
-		//check if number of cards declared == number of cards selected
-		if(parseInt(this.refs.num.value) != this.state.selected_cards.length) {
-			alert('Number of cards declared not equal to number of cards selected!');
-			good = false;
 		}
 		// check if cards declared is within +/- 1 of the previously declared card
 		else if(!firstTurn) {
@@ -95,20 +89,20 @@ class Cheat extends Component {
 
 			var bool1 = (((this.symToNum(this.state.declared_cards.val) - 2 + 1)%13 + 2) == this.symToNum(this.refs.val.value));
 			var bool2 = (this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value));
-			var bool3 = (minusone == this.symToNum(this.refs.val.value));	
+			var bool3 = (minusone == this.symToNum(this.refs.val.value));
 
 			if(!(bool1 || bool2 || bool3)) {
 				alert('The number of the cards you declared (' + this.refs.val.value + ') are not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val);
 				good = false;
 			}
 		}
-		
+
 		//if everything passes, we can submit the move to the server
 		if(good) {
 			this.props.socket.emit('cheatSubmitClientPhase0', {
 				player_index: this.state.player_index,
 				pinNo: this.state.server_PIN,
-				declared_cards: {num: parseInt(this.refs.num.value), val: this.refs.val.value},
+				declared_cards: {num: parseInt(this.state.selected_cards.length), val: this.refs.val.value},
 				selected_cards: this.state.selected_cards,
 			});
 			//clear selected cards hand
@@ -117,7 +111,7 @@ class Cheat extends Component {
 		//console.log(this.refs.title.value);
 		e.preventDefault();
 	}
-	
+
 	//Function for callCheat
 	handleCallCheat = () => {
 		this.props.socket.emit('cheatSubmitClientPhase1', {
@@ -127,7 +121,7 @@ class Cheat extends Component {
 			cheatVote: true,
 		});
 	}
-	
+
 	//Function for dontCallCheat
 	handleDontCallCheat = () => {
 		this.props.socket.emit('cheatSubmitClientPhase1', {
@@ -137,7 +131,7 @@ class Cheat extends Component {
 			cheatVote: false,
 		});
 	}
-	
+
 	disableSelectButton = (phase, index, whoseTurn) => {
 		if(phase == 0) {
 			if(whoseTurn == index) {
@@ -156,7 +150,7 @@ class Cheat extends Component {
 			}
 		}
 	}
-	
+
 	disableCheatButton = (phase, index, whoseTurn) => {
 		if(phase == 0) {
 			if(whoseTurn == index) {
@@ -175,8 +169,8 @@ class Cheat extends Component {
 			}
 		}
 	}
-	
-	componentDidMount = () => {	
+
+	componentDidMount = () => {
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
 			alert('The last man has joined! Game is now starting');
@@ -195,9 +189,9 @@ class Cheat extends Component {
 				playerID: data.player.list[i].ID
 			});
 		}.bind(this));
-					
+
 		//Phase 0 actions
-		this.props.socket.on('cheatSubmitServerPhase0', function(data) {		
+		this.props.socket.on('cheatSubmitServerPhase0', function(data) {
 			//update the shared states (turn_phase, whoseTurn, discard_pile, declared_cards)
 			let msg = "Player " + (this.state.whoseTurn + 1) + " plays " + data.declared_cards.num + " cards of " + data.declared_cards.val + "(s)";
 			this.setState ({
@@ -206,22 +200,22 @@ class Cheat extends Component {
 				declared_cards: data.declared_cards,
 				last_action_tb: msg,
 			});
-						
+
 			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
 					break;
 				}
 			}
-			
+
 			this.setState ({
 				player_hand: data.player.list[i].hand,
 			});
 		}.bind(this));
-			
+
 		//Phase 1 actions
 		this.props.socket.on('cheatSubmitServerPhase1', function(data, msg) {
-						
+
 			//update shared states
 			this.setState ({
 				whoseTurn: data.whoseTurn,
@@ -229,19 +223,19 @@ class Cheat extends Component {
 				Discard_pile: data.Discard_pile,
 				last_action_tb: msg,
 			});
-						
+
 			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id == this.props.socket.id) {
 					break;
 				}
 			}
-						
+
 			this.setState ({
 				player_hand: data.player.list[i].hand,
 			});
 		}.bind(this));
-		
+
 		//When there is a winner
 		this.props.socket.on('cheatWinnerFound', function(player_index) {
 			var msg = 'Player ' + (player_index + 1) + ' has won the game!!!!!!';
@@ -253,11 +247,11 @@ class Cheat extends Component {
 	}
 
 	render() {
-		var valoptions = ['2','3','4','5','6','7','8','10','J','Q','K','A']
-		var numoptions = ['1','2','3','4']
 		var playerhand = this.state.player_hand
 		//Sorts hand according to value
 		Sort.byValue(playerhand);
+		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
+		var numoptions = ['1','2','3','4']
 		var selectedcards = this.state.selected_cards
 		const listHand = playerhand.map((d) =>
 		<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)}className = "Cards" onClick = {() => {
@@ -287,17 +281,13 @@ class Cheat extends Component {
 
 		return (
 			<div className = "Parent">
-				<Scoreboard server_PIN = {this.state.server_PIN} GameName = "Cheat" 
+				<Scoreboard server_PIN = {this.state.server_PIN} GameName = "Cheat"
 				num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
 				player_index = {this.state.player_index}/>
 				<div className = "p1">
 					{listHand}
 					<div className = "p1">
 						<form onSubmit = {this.handleSubmit.bind(this)}>
-							<label className = "label">Choose the number of card(s): </label>
-							<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "num" className = "dropdown">
-								{listnumoptions}
-							</select>
 							<label className = "label"> Choose the value of card(s):</label>
 								<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
 									{listvaloptions}

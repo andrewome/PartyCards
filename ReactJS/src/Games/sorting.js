@@ -19,6 +19,17 @@ const Sort = {
           break;
       }
     }
+  },
+  ValuesinHand(playerhand){
+    var values = [];
+    for(let i = 0;i<playerhand.length;i++){
+      if(values.findIndex((x) => {x ==
+          playerhand[i].value.sym
+      } ) == -1){
+        values.push(playerhand[i].value.sym)
+      }
+    }
+    return values;
   }
 }
 
