@@ -88,7 +88,7 @@ class player {
 	}
 }
 
-var portNum = 1520;
+var portNum = 1521;
 // App setup
 var app = express();
 var server = app.listen(portNum, function() { 

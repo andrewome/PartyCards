@@ -11,7 +11,7 @@ class Body extends Component {
 	
 	// Make client connection to server
 	// Don't forget to change localhost to your actual URL!
-	socket = io("localhost:1520");
+	socket = io("localhost:1521");
 	
 	state = {
 		server_PIN: "",

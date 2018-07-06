@@ -1,7 +1,7 @@
 .Init{
   text-align: center;
   align-items: center;
-  font-family: cursive;
+  font-family: arial;
 }
 
 .textfield{
@@ -20,7 +20,7 @@
   padding: 50px;
   box-shadow: 20px;
   background-color: #ffff11ff;
-  font-family:  cursive;
+  font-family:  arial;
 }
 .para{
   font-family: inherit;

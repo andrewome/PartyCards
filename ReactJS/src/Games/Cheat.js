@@ -141,19 +141,6 @@ class Cheat extends Component {
 		}
 	}
 
-	numtoEng = (num) => {
-		switch(num){
-			case '1':
-			return 'one';
-			case '2':
-			return 'two';
-			case '3':
-			return 'three';
-			case '4':
-			return 'four';
-		}
-	}
-
 	handleSelect_Card = (card) => {
 		this.setState({message: "You selected: " + card.name});
 	}
@@ -281,34 +268,38 @@ class Cheat extends Component {
 		var playerhand = this.state.player_hand
 		//Sorts hand according to value
 		Sort.byValue(playerhand);
-		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
-		var numoptions = ['1','2','3','4']
-		var selectedcards = this.state.selected_cards
+		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+		var numoptions = ['1','2','3','4'];
+		var selectedcards = this.state.selected_cards;
+		
 		const listHand = playerhand.map((d) =>
-		<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)}className = "Cards" onClick = {() => {
-			let index = playerhand.findIndex(x => x.name === d.name)
-			playerhand.splice(index,1)
-			this.setState({player_hand: playerhand})
-			selectedcards.push(d)
-			//this.handleSelect_Card(d)
-			this.setState({selected_cards: selectedcards})
-		}}
-		key={d.name}>{d.name}
-		</button>);
+			<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} 
+					className = "Cards" onClick = {() => {
+						let index = playerhand.findIndex(x => x.name === d.name)
+						playerhand.splice(index, 1)
+						this.setState({player_hand: playerhand})
+						selectedcards.push(d)
+						//this.handleSelect_Card(d)
+						this.setState({selected_cards: selectedcards})
+					}}
+			key={d.name}>{d.name}
+			</button>);
+			
 		const listCards = this.state.selected_cards.map((d) =>
 			<lu
-			key={d.name}>{d.name} <a href='#' onClick = {() =>{
-			let index = selectedcards.findIndex(x => x.name === d.name)
-			selectedcards.splice(index, 1)
-			this.setState({selected_cards: selectedcards})
-			playerhand.push(d)
-			this.setState({player_hand: playerhand})
-		}}>X</a> </lu>);
-		const listvaloptions = valoptions.map((index) =>
-				<option value = {index}>{index}</option>
-		)
-		const listnumoptions = numoptions.map((index) => <option value = {index}>{index}</option>
-)
+				key={d.name}>{d.name} 
+				<a href='#' onClick = {() => {
+					let index = selectedcards.findIndex(x => x.name === d.name);
+					selectedcards.splice(index, 1);
+					this.setState({selected_cards: selectedcards});
+					playerhand.push(d);
+					this.setState({player_hand: playerhand});
+					}}>
+				X</a> 
+			</lu>);
+			
+		const listvaloptions = valoptions.map((index) => <option value = {index}>{index}</option>)
+		const listnumoptions = numoptions.map((index) => <option value = {index}>{index}</option>)
 
 		return (
 			<div className = "Parent">
