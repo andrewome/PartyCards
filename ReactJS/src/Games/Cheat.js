@@ -16,6 +16,7 @@ class Cheat extends Component {
 					break;
 				}
 			}
+			//console.log(data.pinNo)
 			this.setState ({
 				turn_phase: 0,
 				server_PIN: data.pinNo,
@@ -44,7 +45,7 @@ class Cheat extends Component {
 				}
 			}
 			this.setState ({player_hand: data.player.list[i].hand});
-			
+
 			//if it's not the user's turn, tell the rest to choose whether he was cheating or not
 			if(this.state.player_index != data.whoseTurn) {
 				msg = 'Player ' + (data.whoseTurn + 1) + ' has made his move! Decide whether or not he is cheating.';
@@ -69,10 +70,10 @@ class Cheat extends Component {
 					break;
 				}
 			}
-			
+
 			//update user's hand
 			this.setState ({player_hand: data.player.list[i].hand});
-			
+
 			//if it's the user's turn, tell him it is his turn
 			if(this.player_index == data.whoseTurn) {
 				var msg = 'It is now your turn!';
@@ -150,21 +151,21 @@ class Cheat extends Component {
 		var firstTurn = false;
 		var valid = true;
 		var msg;
-		
+
 		//check if number of declared cards is not 0
 		if(this.state.selected_cards.length == 0) {
 			msg = 'You have to play a card! Passing your turn is not allowed!';
 			this.setState({message: msg});
 			valid = false;
 		}
-		
+
 		// check if number of declared cards is <5
 		if(this.state.selected_cards.length > 4) {
 			msg = 'You cannot declare more than 4 cards! (duh...)';
 			this.setState({message: msg});
 			valid = false;
 		}
-		
+
 		// checking of declared_cards is empty
 		if(parseInt(this.state.declared_cards.num) == -1 && this.state.declared_cards.val == -1) {
 			firstTurn = true;
@@ -179,11 +180,11 @@ class Cheat extends Component {
 			var isPlusOne = ((this.symToNum(this.state.declared_cards.val)+ 1)%13 == this.symToNum(this.refs.val.value));
 			var isEqual = (this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value));
 			var isMinusOne = (minusone == this.symToNum(this.refs.val.value));
-			
+
 			//console.log(isPlusOne);
 			//console.log(isEqual);
 			//console.log(isMinusOne);
-			
+
 			if(!(isPlusOne || isEqual || isMinusOne)) {
 				msg = 'The number of the card you declared: ' + this.refs.val.value + ' is not within +/- 1 of the previously declared card: ' + this.state.declared_cards.val;
 				this.setState({message: msg});
@@ -271,9 +272,9 @@ class Cheat extends Component {
 		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 		var numoptions = ['1','2','3','4'];
 		var selectedcards = this.state.selected_cards;
-		
+
 		const listHand = playerhand.map((d) =>
-			<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} 
+			<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)}
 					className = "Cards" onClick = {() => {
 						let index = playerhand.findIndex(x => x.name === d.name)
 						playerhand.splice(index, 1)
@@ -284,10 +285,10 @@ class Cheat extends Component {
 					}}
 			key={d.name}>{d.name}
 			</button>);
-			
+
 		const listCards = this.state.selected_cards.map((d) =>
 			<lu
-				key={d.name}>{d.name} 
+				key={d.name}>{d.name}
 				<a href='#' onClick = {() => {
 					let index = selectedcards.findIndex(x => x.name === d.name);
 					selectedcards.splice(index, 1);
@@ -295,9 +296,9 @@ class Cheat extends Component {
 					playerhand.push(d);
 					this.setState({player_hand: playerhand});
 					}}>
-				X</a> 
+				X</a>
 			</lu>);
-			
+
 		const listvaloptions = valoptions.map((index) => <option value = {index}>{index}</option>)
 		const listnumoptions = numoptions.map((index) => <option value = {index}>{index}</option>)
 

@@ -6,7 +6,7 @@ class Deck {
 		this.deck = [];
 		this.dealt_cards = [];
 	}
-	
+
 	generate_deck() {
 		let card = (suit,value) => {
 			this.name = value.sym + ' of ' + suit
@@ -24,7 +24,7 @@ class Deck {
 			}
 		}
 	}
-	
+
 	print_deck() {
 		if(this.deck.length == 0){
 			console.log("The deck has not been generated")
@@ -74,13 +74,13 @@ class player {
 			this.list.push(player("Player " + i));
 		}
 	}
-	
+
 	print_list() {
 		for(let i = 0;i<this.list.length;i++) {
 			console.log(this.list[i]);
 		}
 	}
-	
+
 	resetCheatVotes() {
 		for(var i=0;i<this.list.length;i++) {
 			this.list[i].cheatVote = -1;
@@ -91,7 +91,7 @@ class player {
 var portNum = 1521;
 // App setup
 var app = express();
-var server = app.listen(portNum, function() { 
+var server = app.listen(portNum, function() {
 	console.log('Server has been started. Port number = ' + portNum);
 });
 
@@ -160,9 +160,9 @@ function findPINNumList(pin) {
 			break;
 		}
 	}
-	return i;	
+	return i;
 }
-	
+
 // All backend functions here
 io.on('connection', function(socket) {
 	// When connected, output message onto server side console, add to list of connected clients
@@ -177,7 +177,7 @@ io.on('connection', function(socket) {
 		delete_id(socket.id);
 		//printConnectedIDs();
 	});
-	
+
 	//initial check if generated game pin is unique
 	socket.on('checkGamePin', function() {
 		var gamePIN = generateGamePIN(), isTaken = false;
@@ -203,7 +203,7 @@ io.on('connection', function(socket) {
 		PINNumList.push({pinNo: gamePIN, current_players: 0});
 		socket.emit('receiveGamePin', gamePIN);
 	});
-	
+
 	// create a room
 	socket.on('startNewServer', function(data) {
 		//randomly generate which player will start first
@@ -211,7 +211,7 @@ io.on('connection', function(socket) {
 		var instance = {
 			whoseTurn: whoseTurn,
 			pinNo: data.pinNo,
-			gametype: data.gametype,
+			gametype: data.gameType,
 			num_players: data.num_players,
 			deck: new Deck(),
 			player: new player(data.num_players),
@@ -226,7 +226,7 @@ io.on('connection', function(socket) {
 
 	// authentication of user
 	socket.on('connectToRoom', function(pin) {
-		
+
 		//check if PIN number exists
 		var i, l = PINNumList.length, pinExists = false;
 		for(i=0;i<l;i++) {
@@ -235,35 +235,35 @@ io.on('connection', function(socket) {
 				break;
 			}
 		}
-		
+
 		if(pinExists) {
 			var PinNumListIndex = findPINNumList(pin);
 			var gameInstancesIndex = findGameInstance(pin);
 			var isFull = false;
-			
+
 			//check whether server is full first, if full reject connection
 			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
 				//reject this connection
 				socket.emit('AuthFail', 'server is currently full');
 				isFull = true;
 			}
-			
+
 			if(!isFull) {
-				socket.emit('AuthSuccess');
+				socket.emit('AuthSuccess',gameInstances[gameInstancesIndex]);
 				//add socket ID into player ID
 				gameInstances[gameInstancesIndex].player.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
 				//increment current number of players within the server
 				PINNumList[PinNumListIndex].current_players++;
 				socket.join(pin);
 				console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
-				
+
 				//check if game server is full, if full, start game
 				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
-					
+
 					// initialising the deck
 					gameInstances[gameInstancesIndex].deck.generate_deck();
 					gameInstances[gameInstancesIndex].deck.shuffle();
-		
+
 					// dealing out the cards
 					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
@@ -273,15 +273,15 @@ io.on('connection', function(socket) {
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
 					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}
-				
-			}		
+
+			}
 		}
 		else {
 			socket.emit('AuthFail', 'server does not exist');
 		}
 	});
 
-	
+
 /*-----------------------
 |						 |
 |						 |
@@ -293,7 +293,7 @@ io.on('connection', function(socket) {
 	//we want to update his hand, discard pile, declared cards and change turn phase to 1
 	socket.on('cheatSubmitClientPhase0', function(data) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
-		
+
 		//remove cards from player's hand and add to discard pile
 		for(var i=0;i<data.selected_cards.length;i++) {
 			gameInstances[gameInstanceIndex].Discard_pile.push(data.selected_cards[i]);
@@ -308,11 +308,11 @@ io.on('connection', function(socket) {
 		gameInstances[gameInstanceIndex].declared_cards = data.declared_cards;
 
 		//update the turn phase to phase 1
-		gameInstances[gameInstanceIndex].turn_phase = 1;	
+		gameInstances[gameInstanceIndex].turn_phase = 1;
 		io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase0', gameInstances[gameInstanceIndex]);
 	});
-	
-	
+
+
 	//If we get num_players # of not cheating, continue to next round
 	//else, 1st person to send 'is cheating', check with actual card
 	//and continue to next round
@@ -320,7 +320,7 @@ io.on('connection', function(socket) {
 		//console.log(data);
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0, i
-		
+
 		//if this client thinks that he's a cheater, check if he really did cheat
 		if(data.cheatVote) {
 			var cheated = false;
@@ -344,14 +344,14 @@ io.on('connection', function(socket) {
 					gameInstances[gameInstanceIndex].player.list[data.player_index].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
 				}
 			}
-			
+
 			//empty discard pile
 			gameInstances[gameInstanceIndex].Discard_pile.splice(0, gameInstances[gameInstanceIndex].Discard_pile.length);
-			
+
 			//generate messages
 			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
 			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time! Player " + (data.player_index + 1) + " gets the entire discard pile!";
-			
+
 			//change phase to 0 + next person's turn + reset cheatVote var + reset declared card
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 			gameInstances[gameInstanceIndex].turn_phase = 0;
@@ -386,7 +386,7 @@ io.on('connection', function(socket) {
 				//console.log(gameInstances[gameInstanceIndex]);
 			}
 		}
-		
+
 		var winner_found = false;
 		//Check if there's any winners (empty hands) past this stage
 		for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {

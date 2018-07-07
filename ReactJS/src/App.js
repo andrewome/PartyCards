@@ -8,17 +8,17 @@ import Cheat from './Games/Cheat'
 import io from 'socket.io-client'
 
 class Body extends Component {
-	
+
 	// Make client connection to server
 	// Don't forget to change localhost to your actual URL!
 	socket = io("localhost:1521");
-	
+
 	state = {
 		server_PIN: "",
 		create_server: false,
 		join_server: false,
 		server_created: false,
-		Game: "",
+		Game: "N/A",
 	}
 
 	handlecreate_server = (value) => {
@@ -26,6 +26,9 @@ class Body extends Component {
 	}
 	handlejoin_server = (value) => {
 		this.setState({join_server: value});
+	}
+	handlegame_type = (value) => {
+		this.setState({Game: value})
 	}
 	handleserver_created = (value) => {
 		this.setState({server_created: value});
@@ -58,14 +61,24 @@ class Body extends Component {
 		}
 		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created){
-			return (
-				<div>
-					<Cheat num_players = {this.state.num_players}
-						   server_PIN = {this.state.server_PIN}
-						   socket = {this.socket}
-					/>
-				</div>
-			);
+			console.log(this.state.Game);
+			if(this.state.Game == "Cheat"){
+				return (
+					<div>
+						<Cheat num_players = {this.state.num_players}
+							   server_PIN = {this.state.server_PIN}
+							   socket = {this.socket}
+						/>
+					</div>
+				);
+			}
+			else{
+				return(
+					<div className = "App">
+					Work in progress....
+					</div>
+				);
+			}
 		}
 		// if create create_server is false and server_created is false, show server creation page
 		else if(this.state.create_server && !this.state.server_created ){
@@ -92,6 +105,7 @@ class Body extends Component {
 									OnHandleGetPin = {this.handleGetPin}
 									OnHandle_server_created = {this.handleserver_created}
 									OnHandle_create_server = {this.handlecreate_server}
+									OnHandle_GameType = {this.handlegame_type}
 						/>
 				</div>
 			);
