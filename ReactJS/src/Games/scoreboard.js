@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 import './Games.css';
 
 class Scoreboard extends Component {
-	constructor(props) {
-		super(props);
-	}
 	render() {
 		//const data = this.props.players.list
 		//const listItems = data.map((d) => <li key={d.name}>{d.name} Score: {d.score}</li>);

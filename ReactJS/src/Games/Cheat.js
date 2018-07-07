@@ -12,7 +12,7 @@ class Cheat extends Component {
 			this.setState({message: msg});
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
-				if(data.player.list[i].id == this.props.socket.id) {
+				if(data.player.list[i].id === this.props.socket.id) {
 					break;
 				}
 			}
@@ -40,14 +40,14 @@ class Cheat extends Component {
 
 			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
-				if(data.player.list[i].id == this.props.socket.id) {
+				if(data.player.list[i].id === this.props.socket.id) {
 					break;
 				}
 			}
 			this.setState ({player_hand: data.player.list[i].hand});
 
 			//if it's not the user's turn, tell the rest to choose whether he was cheating or not
-			if(this.state.player_index != data.whoseTurn) {
+			if(this.state.player_index !== data.whoseTurn) {
 				msg = 'Player ' + (data.whoseTurn + 1) + ' has made his move! Decide whether or not he is cheating.';
 				this.setState({message: msg});
 			}
@@ -66,7 +66,7 @@ class Cheat extends Component {
 
 			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
-				if(data.player.list[i].id == this.props.socket.id) {
+				if(data.player.list[i].id === this.props.socket.id) {
 					break;
 				}
 			}
@@ -75,7 +75,7 @@ class Cheat extends Component {
 			this.setState ({player_hand: data.player.list[i].hand});
 
 			//if it's the user's turn, tell him it is his turn
-			if(this.player_index == data.whoseTurn) {
+			if(this.player_index === data.whoseTurn) {
 				var msg = 'It is now your turn!';
 				this.setState({message: msg});
 			}
@@ -153,7 +153,7 @@ class Cheat extends Component {
 		var msg;
 
 		//check if number of declared cards is not 0
-		if(this.state.selected_cards.length == 0) {
+		if(this.state.selected_cards.length === 0) {
 			msg = 'You have to play a card! Passing your turn is not allowed!';
 			this.setState({message: msg});
 			valid = false;
@@ -167,7 +167,7 @@ class Cheat extends Component {
 		}
 
 		// checking of declared_cards is empty
-		if(parseInt(this.state.declared_cards.num) == -1 && this.state.declared_cards.val == -1) {
+		if(parseInt(this.state.declared_cards.num) === -1 && this.state.declared_cards.val === -1) {
 			firstTurn = true;
 		}
 		// check if cards declared is within +/- 1 of the previously declared card
@@ -177,9 +177,9 @@ class Cheat extends Component {
 				minusone += 13;
 			}
 
-			var isPlusOne = ((this.symToNum(this.state.declared_cards.val)+ 1)%13 == this.symToNum(this.refs.val.value));
-			var isEqual = (this.symToNum(this.state.declared_cards.val) == this.symToNum(this.refs.val.value));
-			var isMinusOne = (minusone == this.symToNum(this.refs.val.value));
+			var isPlusOne = ((this.symToNum(this.state.declared_cards.val)+ 1)%13 === this.symToNum(this.refs.val.value));
+			var isEqual = (this.symToNum(this.state.declared_cards.val) === this.symToNum(this.refs.val.value));
+			var isMinusOne = (minusone === this.symToNum(this.refs.val.value));
 
 			//console.log(isPlusOne);
 			//console.log(isEqual);
@@ -228,8 +228,8 @@ class Cheat extends Component {
 	}
 
 	disableSelectButton = (phase, index, whoseTurn) => {
-		if(phase == 0) {
-			if(whoseTurn == index) {
+		if(phase === 0) {
+			if(whoseTurn === index) {
 				return false;
 			}
 			else {
@@ -237,7 +237,7 @@ class Cheat extends Component {
 			}
 		}
 		else {
-			if(whoseTurn == index) {
+			if(whoseTurn === index) {
 				return true;
 			}
 			else {
@@ -247,8 +247,8 @@ class Cheat extends Component {
 	}
 
 	disableCheatButton = (phase, index, whoseTurn) => {
-		if(phase == 0) {
-			if(whoseTurn == index) {
+		if(phase === 0) {
+			if(whoseTurn === index) {
 				return true;
 			}
 			else {
@@ -256,7 +256,7 @@ class Cheat extends Component {
 			}
 		}
 		else {
-			if(whoseTurn == index) {
+			if(whoseTurn === index) {
 				return true;
 			}
 			else {
@@ -288,19 +288,18 @@ class Cheat extends Component {
 
 		const listCards = this.state.selected_cards.map((d) =>
 			<lu
-				key={d.name}>{d.name}
-				<a href='#' onClick = {() => {
+				key={d.name}> {d.name}
+				 <a href='#' onClick = {() => {
 					let index = selectedcards.findIndex(x => x.name === d.name);
 					selectedcards.splice(index, 1);
 					this.setState({selected_cards: selectedcards});
 					playerhand.push(d);
 					this.setState({player_hand: playerhand});
-					}}>
-				X</a>
+					}}>X</a>
 			</lu>);
 
-		const listvaloptions = valoptions.map((index) => <option value = {index}>{index}</option>)
-		const listnumoptions = numoptions.map((index) => <option value = {index}>{index}</option>)
+		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
+		const listnumoptions = numoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
 
 		return (
 			<div className = "Parent">
