@@ -61,6 +61,7 @@ class Cheat extends Component {
 				whoseTurn: data.whoseTurn,
 				turn_phase: data.turn_phase,
 				Discard_pile: data.Discard_pile,
+				declared_cards: data.declared_cards,
 				last_action_tb: msg,
 			});
 
