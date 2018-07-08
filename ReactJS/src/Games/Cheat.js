@@ -3,6 +3,7 @@ import './Games.css';
 import Scoreboard from './scoreboard';
 import Sort from './sorting';
 
+//importing card images using webpack
 function importAll(r) {
   let images = {};
   r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
@@ -34,6 +35,22 @@ class Cheat extends Component {
 				playerID: data.player.list[i].ID
 			});
 		}.bind(this));
+
+    this.state = {
+      whoseTurn: -1,
+      turn_phase: 0, //0: select phase, 1: cheat phase
+      server_PIN: this.props.server_PIN,
+      last_action_tb: "Cheat!",
+      message: "Waiting for players...",
+      selected_cards: [],
+      value: 1,
+      num: 2,
+      declared_cards: {num: -1, val: -1},
+      Discard_pile: [],
+      playerID: -1,
+      player_hand: [],
+      player_index: -1,
+    }
 
 		//Phase 0 actions
 		this.props.socket.on('cheatSubmitServerPhase0', function(data) {
@@ -85,11 +102,11 @@ class Cheat extends Component {
 
 			//if it's the user's turn, tell him it is his turn
 			if(this.player_index === data.whoseTurn) {
-				var msg = 'It is now your turn!';
+				msg = 'It is now your turn!';
 				this.setState({message: msg});
 			}
 			else {
-				var msg = 'Waiting on player ' + (data.whoseTurn + 1) + " to make a move...";
+				msg = 'Waiting on player ' + (data.whoseTurn + 1) + " to make a move...";
 				this.setState({message: msg});
 			}
 		}.bind(this));
@@ -104,21 +121,7 @@ class Cheat extends Component {
 		}.bind(this));
 	}
 
-	state = {
-		whoseTurn: -1,
-		turn_phase: 0, //0: select phase, 1: cheat phase
-		server_PIN: this.props.server_PIN,
-		last_action_tb: "Cheat!",
-		message: "Waiting for players...",
-		selected_cards: [],
-		value: 1,
-		num: 2,
-		declared_cards: {num: -1, val: -1},
-		Discard_pile: [],
-		playerID: -1,
-		player_hand: [],
-		player_index: -1,
-	}
+
 
 	symToNum = (sym) => {
 		switch(sym) {
@@ -148,11 +151,9 @@ class Cheat extends Component {
 				return 11;
 			case 'A':
 				return 12;
+      default:
+        return -1;
 		}
-	}
-
-	handleSelect_Card = (card) => {
-		this.setState({message: "You selected: " + card.name});
 	}
 
 	//This function handles the values submitted during phase 0 or user turn phase
@@ -160,7 +161,6 @@ class Cheat extends Component {
 		var firstTurn = false;
 		var valid = true;
 		var msg;
-
 		//check if number of declared cards is not 0
 		if(this.state.selected_cards.length === 0) {
 			msg = 'You have to play a card! Passing your turn is not allowed!';
@@ -212,7 +212,6 @@ class Cheat extends Component {
 			//clear selected cards hand
 			this.setState({selected_cards: []});
 		}
-		//console.log(this.refs.title.value);
 		e.preventDefault();
 	}
 
@@ -279,36 +278,36 @@ class Cheat extends Component {
 		//Sorts hand according to value
 		Sort.byValue(playerhand);
 		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-		var numoptions = ['1','2','3','4'];
 		var selectedcards = this.state.selected_cards;
+    var stylename = "cards"
 
-		const listHand = playerhand.map((d) =>
-			<button disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)}
-					className = "Cards" onClick = {() => {
-						let index = playerhand.findIndex(x => x.name === d.name)
-						playerhand.splice(index, 1)
-						this.setState({player_hand: playerhand})
-						selectedcards.push(d)
-						//this.handleSelect_Card(d)
-						this.setState({selected_cards: selectedcards})
-					}}
-			key={d.name}>{d.name}
-			</button>);
-
-		const listCards = this.state.selected_cards.map((d) =>
-			<lu
-				key={d.name}> {d.name}
-				 <a href='#' onClick = {() => {
-					let index = selectedcards.findIndex(x => x.name === d.name);
-					selectedcards.splice(index, 1);
-					this.setState({selected_cards: selectedcards});
-					playerhand.push(d);
-					this.setState({player_hand: playerhand});
-					}}>X</a>
-			</lu>);
+    const listHand = playerhand.map((d) =>
+      <img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
+        onClick = {() =>{
+          if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
+            return;
+          }
+          let index = playerhand.findIndex(x => x.name === d.name)
+          playerhand.splice(index, 1)
+          selectedcards.push(d)
+          this.setState({player_hand: playerhand})
+          this.setState({selected_cards: selectedcards})
+        }}/>
+    );
+    const listCards = selectedcards.map((d) =>
+      <img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']} onClick = {() =>{
+      if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
+          return;
+      }
+      let index = selectedcards.findIndex(x => x.name === d.name)
+      selectedcards.splice(index, 1)
+      playerhand.push(d)
+      this.setState({player_hand: playerhand})
+      this.setState({selected_cards: selectedcards})
+    }
+    }/>);
 
 		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
-		const listnumoptions = numoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
 
 		return (
 			<div className = "Parent">
@@ -316,8 +315,9 @@ class Cheat extends Component {
 				num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
 				player_index = {this.state.player_index}/>
 				<div className = "p1">
-					{listHand}
-					<img className = "cards" src={images['2C.png']} />
+        {listHand}
+        <p>Selected cards:</p>
+        {listCards}
 					<div className = "p1">
 						<form onSubmit = {this.handleSubmit.bind(this)}>
 							<label className = "label">Choose the card you are going to play:</label>
@@ -331,7 +331,6 @@ class Cheat extends Component {
 						<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
 					</div>
 					<p className = "p1">{this.state.message}</p>
-					{listCards}
 					<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 			</div>
 		);

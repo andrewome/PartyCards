@@ -34,4 +34,12 @@
 }
 .cards{
   width: 100px;
+  margin-left: -75px;
+}
+.scards{
+  width: 100px;
+  margin: 1px;
+}
+.handtest{
+  width: 100%;
 }
