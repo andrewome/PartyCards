@@ -1,7 +1,15 @@
 import React, { Component } from 'react';
 import './Games.css';
 import Scoreboard from './scoreboard';
-import Sort from './sorting'
+import Sort from './sorting';
+
+function importAll(r) {
+  let images = {};
+  r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
+  return images;
+}
+
+const images = importAll(require.context('./card_images', false, /\.(png|jpe?g|svg)$/));
 
 class Cheat extends Component {
 	constructor(props){
@@ -308,6 +316,7 @@ class Cheat extends Component {
 				player_index = {this.state.player_index}/>
 				<div className = "p1">
 					{listHand}
+					<img className = "cards" src={images['2C.png']} />
 					<div className = "p1">
 						<form onSubmit = {this.handleSubmit.bind(this)}>
 							<label className = "label">Choose the card you are going to play:</label>
