@@ -29,6 +29,26 @@ const Sort = {
       }
     }
     return values;
+  },
+  bySuit(playerhand){
+    let H = [], C = [], D = [], S = [];
+    for(let i = 0;i<playerhand.length;i++){
+      if(playerhand[i].suit === "Hearts"){
+        H.push(playerhand[i])
+      }
+      else if(playerhand[i].suit === "Clubs"){
+        C.push(playerhand[i]);
+      }
+      else if(playerhand[i].suit === "Diamonds"){
+        D.push(playerhand[i]);
+      }
+      else if(playerhand[i].suit === "Spades"){
+        S.push(playerhand[i]);
+      }
+    }
+    Sort.byValue(H);Sort.byValue(C);Sort.byValue(D);Sort.byValue(S);
+    var result = C.concat(D,S,H)
+    return result;
   }
 }
 

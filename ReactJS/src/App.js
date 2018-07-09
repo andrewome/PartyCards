@@ -4,8 +4,9 @@ import Svrcreate from './svrcreate';
 import JoinServer from './joinserver';
 import Title from './title';
 import Init from './Init';
-import Cheat from './Games/Cheat'
-import io from 'socket.io-client'
+import Cheat from './Games/Cheat';
+import Hearts from './Games/Hearts';
+import io from 'socket.io-client';
 
 class Body extends Component {
 
@@ -62,7 +63,7 @@ class Body extends Component {
 		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created){
 			console.log(this.state.Game);
-			if(this.state.Game == "Cheat"){
+			if(this.state.Game === "Cheat"){
 				return (
 					<div>
 						<Cheat num_players = {this.state.num_players}
@@ -73,7 +74,16 @@ class Body extends Component {
 				);
 			}
 			//else if(this.state.Game == "Taiti") {}
-			//else if(this.state.Game == "Hearts") {}
+			else if(this.state.Game === "Hearts") {
+				return(
+				<div>
+					<Hearts num_players = {this.state.num_players}
+							 server_PIN = {this.state.server_PIN}
+							 socket = {this.socket}
+					/>
+				</div>
+			);
+			}
 			//else if(this.state.Game == "Bridge") {}
 			else {
 				return(

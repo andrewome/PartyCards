@@ -1,92 +1,7 @@
-import express from 'express'
-import socket from 'socket.io'
-
-class Deck {
-	constructor() {
-		this.deck = [];
-		this.dealt_cards = [];
-	}
-
-	generate_deck() {
-		let card = (suit,value) => {
-			this.name = value.sym + ' of ' + suit
-			this.suit = suit
-			this.value = value
-			return {name:this.name, suit:this.suit, value:this.value}
-		};
-		//let values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A']
-		let values = [{sym :'2',num : 0},{sym :'3',num : 1},{sym :'4',num : 2},{sym :'5',num : 3},{sym :'6',num : 4},{sym :'7',num : 5},{sym :'8',num : 6}
-					,{sym :'9',num : 7},{sym :'10',num : 8},{sym :'J',num : 9},{sym :'Q',num : 10},{sym :'K',num : 11},{sym :'A',num : 12}];
-		let suits = ['Clubs','Diamonds','Hearts','Spades'];
-		for(let i = 0;i<suits.length;i++) {
-			for(let j = 0;j < values.length;j++) {
-				this.deck.push(card(suits[i],values[j]));
-			}
-		}
-	}
-
-	print_deck() {
-		if(this.deck.length == 0){
-			console.log("The deck has not been generated")
-		}
-		else {
-			for(let i = 0;i<this.deck.length;i++){
-			console.log(this.deck[i].name)
-			}
-		}
-	}
-	shuffle() {
-		let index = this.deck.length, temp_val, rand_index
-		while(0 != index) {
-			rand_index = Math.floor(Math.random() * index)
-			index -= 1;
-			temp_val = this.deck[index]
-			this.deck[index] = this.deck[rand_index]
-			this.deck[rand_index] = temp_val
-		}
-	}
-	top_deck() {
-		return this.deck[0].name
-	}
-	deal() {
-		//let card be the top card of the deck
-		let card = this.deck.shift()
-		this.dealt_cards.push(card);
-		return card;
-	}
-	size () {
-		return this.deck.length
-	}
-}
-
-class player {
-	constructor(num_players){
-		this.list = [];
-		let player = (name) => {
-			this.name = name;
-			this.score = 0;
-			this.hand = [];
-			this.id = "";
-			this.cheatVote = -1; //0 = false, 1 = true
-			return {name:this.name, score:this.score, hand:this.hand, id:this.id};
-		}
-		for(let i = 1; i <=num_players;i++) {
-			this.list.push(player("Player " + i));
-		}
-	}
-
-	print_list() {
-		for(let i = 0;i<this.list.length;i++) {
-			console.log(this.list[i]);
-		}
-	}
-
-	resetCheatVotes() {
-		for(var i=0;i<this.list.length;i++) {
-			this.list[i].cheatVote = -1;
-		}
-	}
-}
+import express from 'express';
+import socket from 'socket.io';
+import Deck from './src/Games/Deck';
+import player from './src/Games/player'
 
 var portNum = 1521;
 // App setup
@@ -175,7 +90,6 @@ io.on('connection', function(socket) {
 	socket.on('disconnect', function() {
 		console.log(socket.id + " has disconnected from the server");
 		delete_id(socket.id);
-		
 		//printConnectedIDs();
 	});
 
@@ -350,8 +264,8 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].Discard_pile.splice(0, gameInstances[gameInstanceIndex].Discard_pile.length);
 
 			//generate messages
-			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
-			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Player " + (data.player_index + 1) + " gets the entire discard pile!";
+			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
+			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time! Player " + (data.player_index + 1) + " gets the entire discard pile!";
 
 			//change phase to 0 + next person's turn + reset cheatVote var + reset declared card
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
