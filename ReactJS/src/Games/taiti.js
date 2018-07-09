@@ -447,7 +447,7 @@ class Taiti extends Component {
 					}
 					
 					// else look at the highest suit for the rest of the cases
-					else if(selected_type === last_played_type && selected_type) {
+					else if(selected_type === last_played_type) {
 						selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
 						last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
 						for(i=1;i<5;i++) {
