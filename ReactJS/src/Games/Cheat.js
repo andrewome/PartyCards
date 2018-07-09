@@ -5,9 +5,9 @@ import Sort from './sorting';
 
 //importing card images using webpack
 function importAll(r) {
-  let images = {};
-  r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
-  return images;
+	let images = {};
+	r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
+	return images;
 }
 
 const images = importAll(require.context('./card_images', false, /\.(png|jpe?g|svg)$/));
@@ -43,8 +43,6 @@ class Cheat extends Component {
 			last_action_tb: "Cheat!",
 			message: "Waiting for players...",
 			selected_cards: [],
-			value: 1,
-			num: 2,
 			declared_cards: {num: -1, val: -1},
 			Discard_pile: [],
 			playerID: -1,
@@ -313,7 +311,8 @@ class Cheat extends Component {
 			<div className = "Parent">
 				<div className = "scoreboard">
 					<Scoreboard 
-						server_PIN = {this.state.server_PIN} GameName = "Cheat"
+						server_PIN = {this.state.server_PIN} 
+						GameName = "Cheat"
 						num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 					/>

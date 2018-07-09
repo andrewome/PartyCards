@@ -4,7 +4,7 @@ import './homepage.css'
 class Svrcreate extends Component{
 	state = {
 		selectGame : "Taiti",
-		num_players : "4",
+		num_players : "2",
 		server_created : false
 	};
 

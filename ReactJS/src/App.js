@@ -6,6 +6,7 @@ import Title from './title';
 import Init from './Init';
 import Cheat from './Games/Cheat';
 import Hearts from './Games/Hearts';
+import Taiti from './Games/Taiti';
 import io from 'socket.io-client';
 
 class Body extends Component {
@@ -73,7 +74,16 @@ class Body extends Component {
 					</div>
 				);
 			}
-			//else if(this.state.Game == "Taiti") {}
+			else if(this.state.Game === "Taiti") {
+				return (
+					<div>
+						<Taiti num_players = {this.state.num_players}
+							   server_PIN = {this.state.server_PIN}
+							   socket = {this.socket}
+						/>
+					</div>
+				);
+			}
 			else if(this.state.Game === "Hearts") {
 				return(
 				<div>
@@ -82,7 +92,7 @@ class Body extends Component {
 							 socket = {this.socket}
 					/>
 				</div>
-			);
+				);
 			}
 			//else if(this.state.Game == "Bridge") {}
 			else {

@@ -132,7 +132,9 @@ io.on('connection', function(socket) {
 			player: new player(data.num_players),
 			Discard_pile: [],
 			declared_cards: {},
+			last_played_cards: [],
 			turn_phase: 0,
+			lastPersonPlayed: -1,
 		};
 
 		gameInstances.push(instance);
@@ -267,10 +269,10 @@ io.on('connection', function(socket) {
 			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
 			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time! Player " + (data.player_index + 1) + " gets the entire discard pile!";
 
-			//change phase to 0 + next person's turn + reset cheatVote var + reset declared card
+			//change phase to 0 + next person's turn + reset passVote var + reset declared card
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 			gameInstances[gameInstanceIndex].turn_phase = 0;
-			gameInstances[gameInstanceIndex].player.resetCheatVotes();
+			gameInstances[gameInstanceIndex].player.resetPassVotes();
 			gameInstances[gameInstanceIndex].declared_cards.num = -1;
 			gameInstances[gameInstanceIndex].declared_cards.val = -1;
 			if(cheated) {
@@ -284,10 +286,10 @@ io.on('connection', function(socket) {
 		}
 		// else add to the counter
 		else {
-			gameInstances[gameInstanceIndex].player.list[data.player_index].cheatVote = 0;
+			gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 0;
 			//check whether it equals to num_players
 			for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-				if(gameInstances[gameInstanceIndex].player.list[i].cheatVote == 0) {
+				if(gameInstances[gameInstanceIndex].player.list[i].passVote == 0) {
 					counter++;
 				}
 			}
@@ -296,9 +298,8 @@ io.on('connection', function(socket) {
 				var msg = "Everyone voted that player " + (data.whoseTurn + 1) + " is not cheating! Moving on to the next round!";
 				gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 				gameInstances[gameInstanceIndex].turn_phase = 0;
-				gameInstances[gameInstanceIndex].player.resetCheatVotes();
+				gameInstances[gameInstanceIndex].player.resetPassVotes();
 				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msg);
-				//console.log(gameInstances[gameInstanceIndex]);
 			}
 		}
 
@@ -314,6 +315,54 @@ io.on('connection', function(socket) {
 			io.sockets.in(data.pinNo).emit('cheatWinnerFound', i);
 		}
 	});
+	
+/*-----------------------
+|						 |
+|						 |
+|'Taiti' functions here  |
+|						 |
+|						 |
+------------------------*/
+	
+	socket.on('taitiSubmitClient', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		
+		//check if passvote is true or false
+		if(data.passVote) {
+
+		//change passVote status
+		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 0;
+			
+		//increment to next person's turn
+		gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+		}
+		else {
+			//remove cards from player's hand and add to discard pile
+			for(var i=0;i<data.selected_cards.length;i++) {
+				gameInstances[gameInstanceIndex].Discard_pile.push(data.selected_cards[i]);
+				for(var j=0;j<gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;j++) {
+					if(JSON.stringify(data.selected_cards[i]) == JSON.stringify(gameInstances[gameInstanceIndex].player.list[data.player_index].hand[j])) {
+						gameInstances[gameInstanceIndex].player.list[data.player_index].hand.splice(j, 1);
+					}
+				}
+			}
+			
+			//change last played cards, and change to next player's turn		
+			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;		
+			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+			gameInstances[gameInstanceIndex].lastPersonPlayed = data.player_index;
+		}
+		
+		//if everyone has passed and it has reached back to the player who last placed something down,
+		//reset last_played_cards to an empty array
+		if(gameInstances[gameInstanceIndex].lastPersonPlayed === gameInstances[gameInstanceIndex].whoseTurn) {
+			gameInstances[gameInstanceIndex].last_played_cards = [];
+			console.log("Everybody has passed and it has reached back to player " + (gameInstances[gameInstanceIndex].whoseTurn + 1) + ". Resetting last played cards");
+		}
+		
+		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex]);
+	});
+
 });
 
 /* TODO:
