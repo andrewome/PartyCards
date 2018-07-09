@@ -72,10 +72,13 @@ class Body extends Component {
 					</div>
 				);
 			}
-			else{
+			//else if(this.state.Game == "Taiti") {}
+			//else if(this.state.Game == "Hearts") {}
+			//else if(this.state.Game == "Bridge") {}
+			else {
 				return(
 					<div className = "App">
-					Work in progress....
+						Work in progress. Only Cheat is available at this point in time. Sorry!
 					</div>
 				);
 			}

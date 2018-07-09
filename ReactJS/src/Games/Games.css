@@ -1,45 +1,61 @@
 .Scoreboard{
-  border: 4px #000000;
-  border-style: solid;
-  box-shadow: 0 2px 2px #ccc;
-  width: 250px;
-  display: block;
-  margin: 20px;
-  padding: 10px;
-  box-shadow: 20px;
-  background-color: silver;
-  font-family:  arial;
+	border: 4px #000000;
+	border-style: solid;
+	box-shadow: 0 2px 2px #ccc;
+	width: 250px;
+	display: block;
+	margin: 20px;
+	padding: 10px;
+	box-shadow: 20px;
+	background-color: silver;
+	font-family:  arial;
 }
-.p1{
-  text-align: center;
-  vertical-align: bottom;
+
+.scoreboard {
+	text-align: left;
 }
+
+.statusbox {
+	font-size: 20px;
+	font-weight: bold;
+	vertical-align: bottom;
+	margin: auto;
+}
+
+.hand {
+	margin: auto;
+	text-align: center;
+	vertical-align: bottom;
+}
+
 .discardpile{
-  text-align: center;
+	text-align: center;
 }
 .Parent{
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 10px;
-  box-shadow: 20px;
-  background-color: #00aaffff;
-  font-family:  arial;
+	text-align: center;
+	vertical-align: bottom;
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: 10px;
+	box-shadow: 20px;
+	background-color: #00aaffff;
+	font-family:  arial;
 }
 .label{
-  margin: 10px;
+	margin: 10px;
 }
 .dropdown{
-  margin: 10px;
+	margin: 10px;
 }
 .cards{
-  width: 100px;
-  margin-left: -75px;
+	width: 100px;
+	margin-left: -75px;
 }
 .scards{
-  width: 100px;
-  margin: 1px;
+	width: 100px;
+	margin: 1px;
 }
 .handtest{
-  width: 100%;
+	width: 100%;
 }

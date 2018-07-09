@@ -175,6 +175,7 @@ io.on('connection', function(socket) {
 	socket.on('disconnect', function() {
 		console.log(socket.id + " has disconnected from the server");
 		delete_id(socket.id);
+		
 		//printConnectedIDs();
 	});
 
@@ -349,8 +350,8 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].Discard_pile.splice(0, gameInstances[gameInstanceIndex].Discard_pile.length);
 
 			//generate messages
-			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
-			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time! Player " + (data.player_index + 1) + " gets the entire discard pile!";
+			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
+			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Player " + (data.player_index + 1) + " gets the entire discard pile!";
 
 			//change phase to 0 + next person's turn + reset cheatVote var + reset declared card
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;

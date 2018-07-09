@@ -277,59 +277,72 @@ class Cheat extends Component {
 		Sort.byValue(playerhand);
 		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 		var selectedcards = this.state.selected_cards;
-    var stylename = "cards"
+		var stylename = "cards"
 
-    const listHand = playerhand.map((d) =>
-      <img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
-        onClick = {() =>{
-          if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
-            return;
-          }
-          let index = playerhand.findIndex(x => x.name === d.name)
-          playerhand.splice(index, 1)
-          selectedcards.push(d)
-          this.setState({player_hand: playerhand})
-          this.setState({selected_cards: selectedcards})
-        }}/>
-    );
-	const listCards = selectedcards.map((d) =>
-		<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']} 
-			onClick = { () => {
-				if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
-				return;
-			}
-			let index = selectedcards.findIndex(x => x.name === d.name)
-			selectedcards.splice(index, 1)
-			playerhand.push(d)
-			this.setState({player_hand: playerhand})
-			this.setState({selected_cards: selectedcards})
-			}}
-		/>);
+		const listHand = playerhand.map((d) =>
+			<img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
+				onClick = {() =>{
+					if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
+					return;
+				}
+				let index = playerhand.findIndex(x => x.name === d.name)
+				playerhand.splice(index, 1)
+				selectedcards.push(d)
+				this.setState({player_hand: playerhand})
+				this.setState({selected_cards: selectedcards})
+				}}
+			/>
+		);
+		const listCards = selectedcards.map((d) =>
+			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']} 
+				onClick = { () => {
+					if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
+					return;
+				}
+				let index = selectedcards.findIndex(x => x.name === d.name)
+				selectedcards.splice(index, 1)
+				playerhand.push(d)
+				this.setState({player_hand: playerhand})
+				this.setState({selected_cards: selectedcards})
+				}}
+			/>);
 
 		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
 
 		return (
 			<div className = "Parent">
-				<Scoreboard server_PIN = {this.state.server_PIN} GameName = "Cheat"
-				num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
-				player_index = {this.state.player_index}/>
-				<div className = "p1">
-				{listHand}
-				<p>Selected cards:</p>
-				{listCards}
-					<div className = "p1">
-						<form onSubmit = {this.handleSubmit.bind(this)}>
-							<label className = "label">Choose the card you are going to play:</label>
-								<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
-									{listvaloptions}
-								</select>
-							<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
-						</form>
-					</div>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+				<div className = "scoreboard">
+					<Scoreboard 
+						server_PIN = {this.state.server_PIN} GameName = "Cheat"
+						num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
+						player_index = {this.state.player_index}
+					/>
 				</div>
-				<p className = "p1">{this.state.message}</p>
+				
+				<p>Your hand:</p>
+				<div className = "hand">
+					{listHand}
+				</div>
+				
+				<p>Selected cards:</p>
+				<div className = "hand">
+					{listCards}
+				</div>
+				
+				<form onSubmit = {this.handleSubmit.bind(this)}>
+					<label className = "label">Choose the card you are going to play:</label>
+						<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
+							{listvaloptions}
+						</select>
+					<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
+				</form>
+				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
+				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+				
+				<div className = "statusbox">
+					<p>{this.state.message}</p>
+				</div>
+				
 				<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 			</div>
 		);
