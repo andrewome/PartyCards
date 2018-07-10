@@ -129,6 +129,7 @@ class Body extends Component {
 									OnHandle_server_created = {this.handleserver_created}
 									OnHandle_create_server = {this.handlecreate_server}
 									OnHandle_GameType = {this.handlegame_type}
+									OnHandle_num_players = {this.handlenum_players}
 						/>
 				</div>
 			);

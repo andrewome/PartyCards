@@ -18,6 +18,7 @@ class JoinServer extends Component{
 			this.props.OnHandle_GameType(data.gametype);
 			this.props.OnHandle_server_created(true);
 			this.props.OnHandle_create_server(true);
+			this.props.OnHandle_num_players(data.num_players);
 		}.bind(this));
 
 		this.props.socket.on('AuthFail', (reason) => {

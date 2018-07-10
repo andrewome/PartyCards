@@ -15,7 +15,8 @@ class Hearts extends Component{
   constructor(props){
     super(props);
     this.state = {
-      numgame: 0,
+      num_players: this.props.num_players,
+      num_game: 0,
       whoseTurn: -1,
       game_phase: "", //0: select phase, 1: cheat phase
       server_PIN: this.props.server_PIN,
@@ -31,8 +32,6 @@ class Hearts extends Component{
       player_index: -1,
     }
     this.props.socket.on('startGame', function(data) {
-			var msg = ('The last man has joined! Choose 3 cards to pass to your left!');
-			this.setState({message: msg});
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id === this.props.socket.id) {
@@ -41,19 +40,56 @@ class Hearts extends Component{
 			}
 			//console.log(data.pinNo)
 			this.setState ({
+        num_players: this.props.num_players,
         game_phase: "pass",
-        numgame: 1,
+        num_game: 1,
 				server_PIN: data.pinNo,
 				whoseTurn: parseInt(data.whoseTurn),
 				player_hand: data.player.list[i].hand,
 				player_index: parseInt(i),
 				playerID: data.player.list[i].ID
 			});
-      if(this.state.player_hand.findIndex(x => x.name === "2 of Clubs") != -1 ){
-        this.setState({turn_phase: 1})
-      }
+      var msg = 'The last man has joined! Choose 3 cards to pass to your ' + this.PassWhere() + '!';
+      this.setState({message: msg});
+		}.bind(this));
+
+    this.props.socket.on('HeartsWaitPassCards', function(msg) {
+      //Update message informing players to wait
+      this.setState({
+        message: msg
+      })
 		}.bind(this));
   }
+  
+  PassWhere = () =>{
+    switch(this.state.num_game % this.state.num_players){
+      case 0:
+      return -1;
+      case 1:
+      return "left";
+      case 2:
+      return "right";
+      case 3:
+      return "opposite";
+      default:
+      return -1;
+    }
+  }
+  handlePassCards = () =>{
+    if(this.state.selected_cards.length < 3){
+      this.setState({message: "You need to select 3 cards to pass"});
+    }
+    else if(this.state.selected_cards.length === 3){
+      this.props.socket.emit('PassCards', {
+  			player_index: this.state.player_index,
+  			pinNo: this.state.server_PIN,
+  			whoseTurn: this.state.whoseTurn,
+        passwhere: this.state.num_game % this.state.num_players,
+        selected_cards: this.state.selected_cards
+  		});
+    }
+  }
+
   render(){
     var playerhand = this.state.player_hand
 		//Sorts hand according to value
@@ -94,7 +130,7 @@ class Hearts extends Component{
       <div className = "Parent">
         <Scoreboard
           server_PIN = {this.state.server_PIN} GameName = "Hearts"
-          num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
+          num_players = {this.state.num_players} whoseTurn = {this.state.whoseTurn}
           player_index = {this.state.player_index}
         />
         <p>Your hand:</p>
@@ -103,6 +139,12 @@ class Hearts extends Component{
 				</div>
         <p>Selected Card: </p>
         {listCards}
+        <div>
+          <button className = "button" disabled = {this.state.game_phase !== "pass"}
+          onClick = {this.handlePassCards}
+          >Pass Cards</button>
+          <button className = "button" disabled = {this.state.game_phase !== "play"}>Play Card</button>
+        </div>
         <div className = "statusbox">
 					<p>{this.state.message}</p>
 				</div>

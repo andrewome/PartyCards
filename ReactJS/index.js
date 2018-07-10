@@ -186,20 +186,20 @@ io.on('connection', function(socket) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
 						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
-					
+
 					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
 					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
 						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
 							for(j=0;j<gameInstances[gameInstancesIndex].player.list[i].hand.length;j++) {
 								if(gameInstances[gameInstancesIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
 									gameInstances[gameInstancesIndex].whoseTurn = i;
-									console.log('3 of D found in player ' + (i + 1) + 's hand'); 
+									console.log('3 of D found in player ' + (i + 1) + 's hand');
 									break;
 								}
 							}
 						}
 					}
-					
+
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
 					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}
@@ -328,7 +328,7 @@ io.on('connection', function(socket) {
 			io.sockets.in(data.pinNo).emit('cheatWinnerFound', i);
 		}
 	});
-	
+
 /*-----------------------
 |						 |
 |						 |
@@ -336,17 +336,17 @@ io.on('connection', function(socket) {
 |						 |
 |						 |
 ------------------------*/
-	
+
 	socket.on('taitiSubmitClient', function(data) {
 		let msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!"
 		var gameInstanceIndex = findGameInstance(data.pinNo);
-		
+
 		//check if passvote is true or false
 		if(data.passVote) {
 
 		//change passVote status
 		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 0;
-			
+
 		//increment to next person's turn
 		gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 		}
@@ -360,13 +360,13 @@ io.on('connection', function(socket) {
 					}
 				}
 			}
-			
-			//change last played cards, and change to next player's turn		
-			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;		
+
+			//change last played cards, and change to next player's turn
+			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 			gameInstances[gameInstanceIndex].lastPersonPlayed = data.player_index;
 		}
-		
+
 		//if everyone has passed and it has reached back to the player who last placed something down,
 		//reset last_played_cards to an empty array
 		if(gameInstances[gameInstanceIndex].lastPersonPlayed === gameInstances[gameInstanceIndex].whoseTurn) {
@@ -375,7 +375,43 @@ io.on('connection', function(socket) {
 		}
 		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex], msg);
 	});
+	/*-----------------------
+	|						 |
+	|						 |
+	|'Hearts' functions here  |
+	|						 |
+	|						 |
+	------------------------*/
+	socket.on('PassCards', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var counter = 0;
+		var waitplayers = [];
+		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote == -1) {
+				counter++;
+				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
+			}
+		}
+		if(counter === 0){
+			//Pass left
+			if(data.passwhere === 1){
 
+			}
+			//Pass right
+			else if(data.passwhere === 2){
+
+			}
+			//Pass opposite
+			else if(data.passwhere === 3){
+
+			}
+		}
+		else{
+			var msg = "Waiting on player(s):" + waitplayers.join() + "to choose their 3 cards..."
+			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
+		}
+	});
 });
 
 /* TODO:
