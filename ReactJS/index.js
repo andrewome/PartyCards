@@ -156,7 +156,7 @@ io.on('connection', function(socket) {
 		if(pinExists) {
 			var PinNumListIndex = findPINNumList(pin);
 			var gameInstancesIndex = findGameInstance(pin);
-			var isFull = false;
+			var isFull = false, i, j;
 
 			//check whether server is full first, if full reject connection
 			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
@@ -186,7 +186,20 @@ io.on('connection', function(socket) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
 						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
-
+					
+					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
+					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
+						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
+							for(j=0;j<gameInstances[gameInstancesIndex].player.list[i].hand.length;j++) {
+								if(gameInstances[gameInstancesIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
+									gameInstances[gameInstancesIndex].whoseTurn = i;
+									console.log('3 of D found in player ' + (i + 1) + 's hand'); 
+									break;
+								}
+							}
+						}
+					}
+					
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
 					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}

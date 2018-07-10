@@ -18,7 +18,7 @@ class Taiti extends Component {
 		
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
-			var msg = ('The last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first.');
+			var msg = ('Last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first because he has 3 of diamonds');
 			this.setState({message: msg});
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
