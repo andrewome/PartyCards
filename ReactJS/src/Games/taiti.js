@@ -38,8 +38,7 @@ class Taiti extends Component {
 		}.bind(this));
 		
 		//Receiving data from server
-		this.props.socket.on('taitiSubmitServer', function (data) {
-			let msg = "Player " + (this.state.whoseTurn + 1) + " has made his/her move!"
+		this.props.socket.on('taitiSubmitServer', function (data, msg) {
 			this.setState ({
 				whoseTurn: data.whoseTurn,
 				Discard_pile: data.Discard_pile,
@@ -58,7 +57,7 @@ class Taiti extends Component {
 			this.setState ({player_hand: data.player.list[i].hand});
 
 			//if it's the user's turn, tell him it is his turn
-			if(this.player_index === data.whoseTurn) {
+			if(this.state.player_index === data.whoseTurn) {
 				msg = 'It is now your turn!';
 				this.setState({message: msg});
 			}
@@ -275,12 +274,14 @@ class Taiti extends Component {
 	
 	//This function handles the values submitted during user turn
 	handleSubmit = (e) => {
-		Sort.byValue(this.state.selected_cards);
 		var selected_cards_sorted = this.state.selected_cards;
-		Sort.byValue(this.state.last_played_cards);
+		Sort.byValue(selected_cards_sorted);
 		var last_played_cards_sorted = this.state.last_played_cards;
+		Sort.byValue(last_played_cards_sorted);
 		var isReset = false, valid = true, msg;
 		var selected_highest, last_played_highest, i, count;
+		var selected_type = this.checkValidity(selected_cards_sorted), last_played_type = this.checkValidity(last_played_cards_sorted);
+		
 		
 		//if last_played_cards array length is 0, means that the round has resetted
 		if(this.state.last_played_cards.length === 0) {
@@ -293,7 +294,7 @@ class Taiti extends Component {
 		}
 		
 		//check if the combination of cards is valid
-		if(this.checkValidity(selected_cards_sorted) !== -1) {
+		if(selected_type !== -1) {
 			valid = true;
 		}
 		else {
@@ -367,8 +368,6 @@ class Taiti extends Component {
 				}
 				else if (this.state.selected_cards.length === 5) {
 					//check type of 5 card combination; straight flush(4) > full house(3) > 4 of a kind(2) > flush(1) > straight(0)
-					var selected_type = this.checkValidity(selected_cards_sorted), last_played_type = this.checkValidity(last_played_cards_sorted);
-
 					//if selected hand is higher than last played, valid
 					if(selected_type > last_played_type) {
 						valid = true;
@@ -513,6 +512,7 @@ class Taiti extends Component {
 		Sort.byValue(playerhand);
 		var selectedcards = this.state.selected_cards;
 		var last_played_cards = this.state.last_played_cards
+		Sort.byValue(last_played_cards);
 		var stylename = "cards"
 		
 		const list_last_played = last_played_cards.map((d) => <img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']} />);				

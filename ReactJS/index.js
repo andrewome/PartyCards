@@ -325,6 +325,7 @@ io.on('connection', function(socket) {
 ------------------------*/
 	
 	socket.on('taitiSubmitClient', function(data) {
+		let msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!"
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		
 		//check if passvote is true or false
@@ -357,10 +358,9 @@ io.on('connection', function(socket) {
 		//reset last_played_cards to an empty array
 		if(gameInstances[gameInstanceIndex].lastPersonPlayed === gameInstances[gameInstanceIndex].whoseTurn) {
 			gameInstances[gameInstanceIndex].last_played_cards = [];
-			console.log("Everybody has passed and it has reached back to player " + (gameInstances[gameInstanceIndex].whoseTurn + 1) + ". Resetting last played cards");
+			msg = "Everybody has passed and it has reached back to player " + (gameInstances[gameInstanceIndex].whoseTurn + 1);
 		}
-		
-		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex]);
+		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex], msg);
 	});
 
 });

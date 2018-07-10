@@ -99,7 +99,7 @@ class Cheat extends Component {
 			this.setState ({player_hand: data.player.list[i].hand});
 
 			//if it's the user's turn, tell him it is his turn
-			if(this.player_index === data.whoseTurn) {
+			if(this.state.player_index === data.whoseTurn) {
 				msg = 'It is now your turn!';
 				this.setState({message: msg});
 			}
