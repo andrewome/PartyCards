@@ -203,11 +203,11 @@ class Taiti extends Component {
 					}
 				}
 				if(count === 4) {
-					return 2;
+					return 3;
 				}
 			}
 			
-			// checking for house
+			// checking for full house
 			var triplets = 0, doubles = 0;
 			for(i=0;i<5;i++) {
 				count = 1;
@@ -227,7 +227,7 @@ class Taiti extends Component {
 				}
 			}			
 			if(triplets === 3 && doubles === 2) {
-				return 3;
+				return 2;
 			}
 			
 			//checking for flush and straights
@@ -279,9 +279,9 @@ class Taiti extends Component {
 		var last_played_cards_sorted = this.state.last_played_cards;
 		Sort.byValue(last_played_cards_sorted);
 		var isReset = false, valid = true, msg;
-		var selected_highest, last_played_highest, i, count;
+		var selected_highest, last_played_highest, i, j, count, selected_largest, last_played_largest;
 		var selected_type = this.checkValidity(selected_cards_sorted), last_played_type = this.checkValidity(last_played_cards_sorted);
-		
+		var first, second, selected_triplet, last_played_triplet;
 		
 		//if last_played_cards array length is 0, means that the round has resetted
 		if(this.state.last_played_cards.length === 0) {
@@ -292,6 +292,7 @@ class Taiti extends Component {
 			msg = "You cannot submit 0 cards. Use the pass option instead!";
 			valid = false;
 		}
+		
 		
 		//check if the combination of cards is valid
 		if(selected_type !== -1) {
@@ -306,15 +307,20 @@ class Taiti extends Component {
 		if(!isReset && valid) {
 			// if number of last played cards is larger than selected cards, then the move is obviously invalid
 			if(this.state.last_played_cards.length > this.state.selected_cards.length) {
-				msg = "Number of cards played is smaller than last played cards";
+				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
 				valid = false;
 			}
+			
 			// if the number of played cards(checked if it is a valid combo) > last played cards, then move is valid
 			else if(this.state.last_played_cards.length < this.state.selected_cards.length) {
-				valid = true;
+				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
+				valid = false;
 			}
+			
 			// if number of cards are the same
 			else if(this.state.last_played_cards.length === this.state.selected_cards.length) {
+				
+				//singles check; value first, then suit
 				if(this.state.selected_cards.length === 1) {
 					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
 						if(this.suitToNum(this.state.selected_cards[0].suit) > this.suitToNum(this.state.last_played_cards[0].suit)) {
@@ -333,6 +339,8 @@ class Taiti extends Component {
 						valid = true;
 					}
 				}
+				
+				//doubles check; value first, then suit
 				else if(this.state.selected_cards.length === 2) {
 					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
 						// check for highest suit
@@ -366,8 +374,10 @@ class Taiti extends Component {
 						valid = true;
 					}
 				}
+				
+				//5 card combinations here
 				else if (this.state.selected_cards.length === 5) {
-					//check type of 5 card combination; straight flush(4) > full house(3) > 4 of a kind(2) > flush(1) > straight(0)
+					//check type of 5 card combination; straight flush(4) > 4 of a kind(3) > full house(2) > flush(1) > straight(0)
 					//if selected hand is higher than last played, valid
 					if(selected_type > last_played_type) {
 						valid = true;
@@ -377,93 +387,187 @@ class Taiti extends Component {
 						msg = "Combination of cards selected is not as high as previously played cards combination";
 						valid = false;
 					}
-					// if it's of the same type, compare the different types of 5 card combinations
-					// if it's a straight, look at 5th card of sorted hand
-					else if(selected_type === 0 && selected_type === last_played_type) {
-						if(this.straightSymToNum(selected_cards_sorted[4].value.sym) === this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
-							if(this.suitToNum(selected_cards_sorted[4].suit) > this.suitToNum(last_played_cards_sorted[4].suit)) {
+
+					// if it's a straight, look at 5th card of sorted hand. Compare value then suit
+					else if(selected_type === last_played_type) {
+						if(selected_type === 0) {
+							if(this.straightSymToNum(selected_cards_sorted[4].value.sym) === this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
+								if(this.suitToNum(selected_cards_sorted[4].suit) > this.suitToNum(last_played_cards_sorted[4].suit)) {
+									valid = true;
+								}
+								else {
+									msg = "Suit of largest card played is smaller than previously played largest card";
+									valid = false;
+								}
+							}
+							else if(this.straightSymToNum(selected_cards_sorted[4].value.sym) > this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
 								valid = true;
 							}
-							else {
-								msg = "Suit of largest card played is smaller than previously played cards";
+							else if(this.straightSymToNum(selected_cards_sorted[4].value.sym) < this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
+								msg = "Value of largest card played is smaller than previously played cards";
 								valid = false;
 							}
 						}
-						else if(this.straightSymToNum(selected_cards_sorted[4].value.sym) > this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
-							valid = true;
-						}
-						else if(this.straightSymToNum(selected_cards_sorted[4].value.sym) < this.straightSymToNum(last_played_cards_sorted[4].value.sym)) {
-							msg = "Value of largest card played is smaller than previously played cards";
-							valid = false;
-						}
-					}
+						
+						// if it's flush check suit first, if suit is the same tiebreaker by looking at largest value
+						else if(selected_type === 1) {
+							
+							selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
+							last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
+							
+							selected_largest = -1;
+							last_played_largest = -1;
+							
+							for(i=0;i<5;i++) {
+								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) > selected_largest) {
+									selected_largest = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
+								}
+								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) > last_played_largest) {
+									last_played_largest = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
+								}
+							}
+
+							if(selected_highest > last_played_highest) {
+								valid = true;
+							}
+							else if(selected_highest === last_played_highest) {
+								if(selected_largest > last_played_largest) {
+									valid = true;
+								}
+								else {
+									msg = "Suit is the same, but largest value is smaller than the last played flush";
+									valid = false;
+								}
+							}
+							else {
+								msg = "Suit of selected cards is smaller than that of previously played cards";
+								valid = false;
+							}
+						}						
 					
-					// if it's a full house, look at value of the triplet
-					else if(selected_type === 3 && selected_type === last_played_type) {
-						var first, second, selected_triplet, last_played_triplet;
-						
-						first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
-						count = 0;
-						for(i=1;i<5;i++) {
-							if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
-								second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);	
+						// if it's a full house, look at value of the triplet
+						else if(selected_type === 2) {
+							
+							//find the triplet for selected cards
+							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
+							count = 0;
+							for(i=1;i<5;i++) {
+								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
+									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);	
+								}
+								else {
+									count++;
+								}
+							}
+							if(count === 3) {
+								selected_triplet = first;
 							}
 							else {
-								count++;
+								selected_triplet = second;
 							}
-						}
-						if(count === 3) {
-							selected_triplet = first;
-						}
-						else {
-							selected_triplet = second;
-						}
-						
-						first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
-						count = 0;
-						for(i=1;i<5;i++) {
-							if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
-								second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);	
+							
+							//find triplet for last played card
+							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
+							count = 0;
+							for(i=1;i<5;i++) {
+								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
+									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);	
+								}
+								else {
+									count++;
+								}
+							}
+							if(count === 3) {
+								last_played_triplet = first;
 							}
 							else {
-								count++;
+								last_played_triplet = second;
+							}
+							
+							//if value of triplet is larger, it is valid
+							if(selected_triplet > last_played_triplet) {
+								valid = true;
+							}
+							else {
+								msg = "Value of selected triplet is smaller than that of previously played triplet";
+								valid = false;
 							}
 						}
-						if(count === 3) {
-							last_played_triplet = first;
-						}
-						else {
-							last_played_triplet = second;
+												
+						//if it's four of a kind, look at value of the four only.
+						else if(selected_type === 3) {
+							var selected_four_val, last_played_four_val;
+							
+							//find value and suit of selected cards
+							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
+							count = 1;
+							for(i=1;i<5;i++) {
+								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
+									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
+								}
+								else {
+									count++;
+								}
+							}							
+							if(count === 4) {
+								selected_four_val = first;
+							}
+							else {
+								selected_four_val = second;
+							}
+							
+							// rinse and repeat for last played cards
+							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
+							count = 1;
+							for(i=1;i<5;i++) {
+								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
+									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
+								}
+								else {
+									count++;
+								}
+							}
+							if(count === 4) {
+								last_played_four_val = first;
+							}
+							else {
+								last_played_four_val = second;
+							}
+							
+							// now compare values
+							if(selected_four_val > last_played_four_val) {
+								valid = true;
+							}
+							else {
+								msg = 'Value of 4 of a kind is lower than previously played card';
+								valid = false;
+							}
 						}
 
-						if(selected_triplet > last_played_triplet) {
-							valid = true;
-						}
-						else {
-							msg = "Value of selected triplet is smaller than that of previously played triplet";
-							valid = false;
-						}
-					}
-					
-					// else look at the highest suit for the rest of the cases
-					else if(selected_type === last_played_type) {
-						selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
-						last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
-						for(i=1;i<5;i++) {
-							if(this.suitToNum(this.state.selected_cards[i].suit) > selected_highest) {
-								selected_highest = this.suitToNum(this.state.selected_cards[i].suit);
+						//straight flush - look at value first, followed by largest suit.
+						else if(selected_type === 4) {
+							
+							selected_highest = this.suitToNum(this.state.selected_cards_sorted[4].suit);
+							last_played_highest = this.suitToNum(this.state.last_played_cards_sorted[4].suit);
+							selected_largest = this.straightSymToNum(this.state.selected_cards_sorted[4].value.sym);
+							last_played_largest = this.straightSymToNum(this.state.last_played_cards_sorted[4].value.sym);
+
+							if(selected_largest > last_played_largest) {
+								valid = true;
 							}
-							if(this.suitToNum(this.state.last_played_cards[i].suit) > last_played_highest) {
-								last_played_highest = this.suitToNum(this.state.last_played_cards[i].suit);
+							else if(selected_largest === last_played_largest) {
+								if(selected_highest > last_played_highest) {
+									valid = true;
+								}
+								else {
+									msg = "Value is the same, but the suit is smaller than the suit of the last played flush";
+									valid = false;
+								}
 							}
-						}
-						
-						if(selected_highest > last_played_highest) {
-							valid = true;
-						}
-						else {
-							msg = "Suit of selected cards is smaller than that of previously played cards";
-							valid = false;
+							else {
+								msg = "Value of selected cards is smaller than that of previously played cards";
+								valid = false;
+							}
 						}
 					}
 				}
@@ -495,6 +599,8 @@ class Taiti extends Component {
 		whoseTurn: this.state.whoseTurn,
 		passVote: true,
 		});
+		//clear selected cards hand
+		this.setState({selected_cards: []});
 	}
 	
 	disableSelectButton = (index, whoseTurn) => {
@@ -515,7 +621,7 @@ class Taiti extends Component {
 		Sort.byValue(last_played_cards);
 		var stylename = "cards"
 		
-		const list_last_played = last_played_cards.map((d) => <img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']} />);				
+		const list_last_played = last_played_cards.map((d) => <img className = "scards"  src = {images[d.value.sym + d.suit[0] + '.png']} />);				
 		
 		const listHand = playerhand.map((d) =>
 			<img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
