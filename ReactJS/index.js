@@ -1,7 +1,7 @@
 import express from 'express';
 import socket from 'socket.io';
-import Deck from './src/Games/Deck';
-import player from './src/Games/player'
+import Deck from './constructors/Deck';
+import player from './constructors/player'
 
 var portNum = 1521;
 // App setup
