@@ -44,7 +44,7 @@ class Hearts extends Component{
 			this.setState ({
         num_players: this.props.num_players,
         game_phase: "pass",
-        num_game: 2,
+        num_game: 1,
 				server_PIN: data.pinNo,
 				player_hand: data.player.list[i].hand,
 				player_index: parseInt(i),
@@ -60,6 +60,13 @@ class Hearts extends Component{
         message: msg
       })
 		}.bind(this));
+    this.props.socket.on('NextTurn',function(data){
+      this.setState({
+        game_phase: "play",
+        message: data.message,
+        whoseTurn: data.whoseTurn,
+      })
+    }.bind(this));
   }
 
   PassWhere = () =>{
@@ -78,7 +85,6 @@ class Hearts extends Component{
   }
   handlePassCards = () =>{
     //If player did not select 3 cards notify player
-    console.log(this.state.player_index);
     if(this.state.selected_cards.length < 3){
       this.setState({message: "You need to select 3 cards to pass"});
     }
@@ -96,7 +102,6 @@ class Hearts extends Component{
       for(let i = 12 ;i>=10;i--){
         passedcards.push(data.gameinstance.player.list[this.state.player_index].hand[i]);
       }
-
       this.setState({
         selected_cards : [],
         player_hand: data.gameinstance.player.list[this.state.player_index].hand,
@@ -110,6 +115,9 @@ class Hearts extends Component{
   }
 
   handlePlayCard = () =>{
+    if(this.state.selected_cards.length < 1){
+      this.setState({message: "You need to pick a card to play!"});
+    }
     //Checks whether player has to play 2 of Clubs to start the game
     if(this.state.game_phase === "starting" && this.state.selected_cards[0].name != "2 of Clubs"){
       this.setState({message: "You need to play 2 of Clubs to start the game!"});
@@ -119,10 +127,17 @@ class Hearts extends Component{
     if(this.state.selected_cards[0].suit !== this.state.played_suit){
       let index = this.state.player_hand.findIndex(x => x.suit === this.state.played_suit);
       if (index !== -1){
-        this.setState({message: "You have to play " + this.state.played_suit + "."})
+        this.setState({message: "You have to play " + this.state.played_suit + "!"})
         return;
       }
     }
+    this.props.socket.emit("PlayCard", {
+      played_card: this.state.selected_cards[0],
+      whoseTurn: this.state.whoseTurn,
+      played_suit: this.state.played_suit,
+      player_index: this.state.player_index,
+      pinNo: this.state.server_PIN,
+    })
   }
 
   render(){
@@ -182,12 +197,14 @@ class Hearts extends Component{
           num_players = {this.state.num_players} whoseTurn = {this.state.whoseTurn}
           player_index = {this.state.player_index}
         />
-        <p>Your hand:</p>
+        <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				<div className = "hand">
 					{listHand}
 				</div>
-        <p> You received: </p>
-        {listReceived}
+        <div hidden = {this.state.game_phase !== "starting"} >
+          <p > You received: </p>
+          {listReceived}
+        </div>
         <p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
         {listCards}
         <div>

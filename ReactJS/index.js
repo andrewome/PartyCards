@@ -393,7 +393,6 @@ io.on('connection', function(socket) {
 	|						 |
 	------------------------*/
 	socket.on('PassCards', function(data) {
-		console.log('PassCards');
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
@@ -401,21 +400,18 @@ io.on('connection', function(socket) {
 		gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
 		//Passing the Cards
 		if(data.passwhere === 1){
-			console.log("passLeft")
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand.concat(data.selected_cards);
 		}
 		//Pass right
 		else if(data.passwhere === 2){
-			console.log("passRight")
 			let index = data.player_index-1;
 			if(index < 0){
 				index += 4;
 			}
-			gameInstances[gameInstanceIndex].player.list[(index)%4].hand = gameInstances[gameInstanceIndex].player.list[(index)%4].hand.concat(data.selected_cards);	
+			gameInstances[gameInstanceIndex].player.list[(index)%4].hand = gameInstances[gameInstanceIndex].player.list[(index)%4].hand.concat(data.selected_cards);
 		}
 		//Pass opposite
 		else if(data.passwhere === 3){
-			console.log("passOpp")
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
 
 		}
@@ -435,6 +431,7 @@ io.on('connection', function(socket) {
 					break;
 				}
 			}
+			gameInstances[gameInstanceIndex].player.resetPassVotes();
 			io.sockets.in(data.pinNo).emit('PassedCards',{
 				gameinstance: gameInstances[gameInstanceIndex],
 				msg: "Everybody has passed their cards! Waiting for Player " + (turn+1) + " to start the game with 2 of Clubs",
@@ -448,6 +445,30 @@ io.on('connection', function(socket) {
 			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
 		}
 	});
+	socket.on('PlayCard', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var counter = 0;
+		var whoseTurn = (data.whoseTurn + 1)%4;
+		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+
+		//Checks if all the players have played a card
+		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
+				counter++;
+			}
+		}
+		if(counter === 4){
+
+		}
+		else{
+			var msg = "Player " + (data.player_index+1) + " played " + data.played_card.name + ". " + "Waiting for Player " + (whoseTurn+1) + "...";
+			io.sockets.in(data.pinNo).emit('NextTurn', {
+				message: msg,
+				whoseTurn: whoseTurn,
+			});
+		}
+
+	})
 });
 
 /* TODO:
