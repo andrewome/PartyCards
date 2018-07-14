@@ -10,6 +10,9 @@ class Svrcreate extends Component{
 
 	handleChange = (event) => {
 		this.setState({selectGame: event.target.value});
+		if(event.target.value === "Hearts" || event.target.value === "Bridge"){
+			this.setState({num_players : "4"})
+		}
 	};
 	handleNumChange = (event) => {
 		this.setState({num_players: event.target.value});
@@ -20,7 +23,7 @@ class Svrcreate extends Component{
 			gameType: this.state.selectGame,
 			num_players: this.state.num_players
 		};
-	
+
 		//tell the server what room this client is using,
 		//and update the states of the client side variables
 		this.props.socket.emit('startNewServer', data);
@@ -31,33 +34,57 @@ class Svrcreate extends Component{
 		this.props.socket.emit('connectToRoom', data.pinNo);
 		alert('Your server PIN is: ' + this.props.server_PIN);
 	}
-	
-	render() {
-		return ( 
-			<div className="Init">
-				<p>Choose the game you want to play:</p>
 
-				<select
-					value={this.state.selectGame}
-					onChange={this.handleChange}
-					>
-					<option value="Taiti">Taiti</option>
-					<option value="Cheat">Cheat</option>
-					<option value="Hearts">Hearts</option>
-					<option value="Bridge">Bridge</option>
-				</select>
-				<p>Select the number of players</p>
-				<select value={this.state.num_players}
+	render() {
+		if(this.state.selectGame === "Hearts" || this.state.selectGame === "Bridge"){
+			return (
+				<div className="Init">
+					<p>Choose the game you want to play:</p>
+					<select
+						value={this.state.selectGame}
+						onChange={this.handleChange}
+						>
+						<option value="Taiti">Taiti</option>
+						<option value="Cheat">Cheat</option>
+						<option value="Hearts">Hearts</option>
+						<option value="Bridge">Bridge</option>
+					</select>
+					<p>Select the number of players</p>
+					<select value={this.state.num_players}
 					onChange={this.handleNumChange}>
-					<option value={2}>2</option>
-					<option value={3}>3</option>
-					<option value={4}>4</option>
-					<option value={5}>5</option>
-				</select>
-				<br/>
-				<button className = "button" onClick = {this.handleSubmission}> Submit </button>
-			</div>
-		);
+						<option value={4}>4</option>
+					</select>
+					<br/>
+					<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+				</div>
+			);
+		}
+		else{
+			return(
+				<div className="Init">
+					<p>Choose the game you want to play:</p>
+					<select
+						value={this.state.selectGame}
+						onChange={this.handleChange}
+						>
+						<option value="Taiti">Taiti</option>
+						<option value="Cheat">Cheat</option>
+						<option value="Hearts">Hearts</option>
+						<option value="Bridge">Bridge</option>
+					</select>
+					<p>Select the number of players</p>
+					<select value={this.state.num_players}
+					onChange={this.handleNumChange}>
+						<option value={2}>2</option>
+						<option value={3}>3</option>
+						<option value={4}>4</option>
+						<option value={5}>5</option>
+					</select>
+					<br/>
+					<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+				</div>
+			);
+		}
 	}
 }
 

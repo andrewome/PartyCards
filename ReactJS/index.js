@@ -78,6 +78,16 @@ function findPINNumList(pin) {
 	return i;
 }
 
+function handremove(hand,sel_cards){
+	for(let i = 0; i< sel_cards.length;i++){
+		let index = hand.findIndex(x => x.name === sel_cards[i].name);
+		if(index != -1){
+			hand.splice(index,1);
+		}
+	}
+	return hand;
+}
+
 // All backend functions here
 io.on('connection', function(socket) {
 	// When connected, output message onto server side console, add to list of connected clients
@@ -383,30 +393,56 @@ io.on('connection', function(socket) {
 	|						 |
 	------------------------*/
 	socket.on('PassCards', function(data) {
+		console.log('PassCards');
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
 		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+		gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
+		//Passing the Cards
+		if(data.passwhere === 1){
+			console.log("passLeft")
+			gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand.concat(data.selected_cards);
+		}
+		//Pass right
+		else if(data.passwhere === 2){
+			console.log("passRight")
+			let index = data.player_index-1;
+			if(index < 0){
+				index += 4;
+			}
+			gameInstances[gameInstanceIndex].player.list[(index)%4].hand = gameInstances[gameInstanceIndex].player.list[(index)%4].hand.concat(data.selected_cards);	
+		}
+		//Pass opposite
+		else if(data.passwhere === 3){
+			console.log("passOpp")
+			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
+
+		}
+		//Checks if all the players have chosen the three cards to pass
 		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-			if(gameInstances[gameInstanceIndex].player.list[i].passVote == -1) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
 				counter++;
 				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
 			}
 		}
+		//Everybody has chosen their cards;
 		if(counter === 0){
-			//Pass left
-			if(data.passwhere === 1){
-
+			for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++){
+				let index = gameInstances[gameInstanceIndex].player.list[i].hand.findIndex(d => d.name === "2 of Clubs");
+				if(index != -1){
+					var turn = i;
+					break;
+				}
 			}
-			//Pass right
-			else if(data.passwhere === 2){
-
-			}
-			//Pass opposite
-			else if(data.passwhere === 3){
-
-			}
+			io.sockets.in(data.pinNo).emit('PassedCards',{
+				gameinstance: gameInstances[gameInstanceIndex],
+				msg: "Everybody has passed their cards! Waiting for Player " + (turn+1) + " to start the game with 2 of Clubs",
+				whoseTurn : turn,
+			})
+			return;
 		}
+		//Not everybody has selected their cards. Prints out waiting message...
 		else{
 			var msg = "Waiting on player(s):" + waitplayers.join() + "to choose their 3 cards..."
 			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);

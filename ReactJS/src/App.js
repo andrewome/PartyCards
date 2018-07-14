@@ -63,7 +63,6 @@ class Body extends Component {
 		}
 		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created){
-			console.log(this.state.Game);
 			if(this.state.Game === "Cheat"){
 				return (
 					<div>
@@ -130,6 +129,7 @@ class Body extends Component {
 									OnHandle_create_server = {this.handlecreate_server}
 									OnHandle_GameType = {this.handlegame_type}
 									OnHandle_num_players = {this.handlenum_players}
+									OnHandle_PinNo = {this.handleGetPin}
 						/>
 				</div>
 			);
