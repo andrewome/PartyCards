@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './Games.css';
-import Scoreboard from './scoreboard';
+import GameInfo from './GameInfo';
 import Sort from './sorting';
+import Scoreboard from './scoreboard'
 
 //importing card images using webpack
 function importAll(r) {
@@ -32,7 +33,8 @@ class Cheat extends Component {
 				whoseTurn: parseInt(data.whoseTurn),
 				player_hand: data.player.list[i].hand,
 				player_index: parseInt(i),
-				playerID: data.player.list[i].ID
+				playerID: data.player.list[i].ID,
+				scoreboard: data.scoreboard,
 			});
 		}.bind(this));
 
@@ -48,6 +50,7 @@ class Cheat extends Component {
 			playerID: -1,
 			player_hand: [],
 			player_index: -1,
+			scoreboard: [],
 		}
 
 		//Phase 0 actions
@@ -292,7 +295,7 @@ class Cheat extends Component {
 			/>
 		);
 		const listCards = selectedcards.map((d) =>
-			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']} 
+			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = { () => {
 					if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
 					return;
@@ -310,24 +313,25 @@ class Cheat extends Component {
 		return (
 			<div className = "Parent">
 				<div className = "scoreboard">
-					<Scoreboard 
-						server_PIN = {this.state.server_PIN} 
+					<GameInfo
+						server_PIN = {this.state.server_PIN}
 						GameName = "Cheat"
 						num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 					/>
+					<Scoreboard className = "scoreboard" scoreboard = {this.state.scoreboard}/>
 				</div>
-				
+
 				<p>Your hand:</p>
 				<div className = "hand">
 					{listHand}
 				</div>
-				
+
 				<p>Selected cards:</p>
 				<div className = "hand">
 					{listCards}
 				</div>
-				
+
 				<form onSubmit = {this.handleSubmit.bind(this)}>
 					<label className = "label">Choose the card you are going to play:</label>
 						<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
@@ -337,11 +341,11 @@ class Cheat extends Component {
 				</form>
 				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
 				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
-				
+
 				<div className = "statusbox">
 					<p>{this.state.message}</p>
 				</div>
-				
+
 				<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 			</div>
 		);

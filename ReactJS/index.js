@@ -78,6 +78,7 @@ function findPINNumList(pin) {
 	return i;
 }
 
+//Removes cards in list sel_cards from the list hand
 function handremove(hand,sel_cards){
 	for(let i = 0; i< sel_cards.length;i++){
 		let index = hand.findIndex(x => x.name === sel_cards[i].name);
@@ -86,6 +87,18 @@ function handremove(hand,sel_cards){
 		}
 	}
 	return hand;
+}
+
+function HeartsValue(card){
+	if(card.suit === "Hearts"){
+		return 1;
+	}
+	else if(card.name === "Q of Spades"){
+		return 13;
+	}
+	else{
+		return 0;
+	}
 }
 
 // All backend functions here
@@ -134,6 +147,7 @@ io.on('connection', function(socket) {
 		//randomly generate which player will start first
 		var whoseTurn = Math.floor((Math.random()*100) + 1)%data.num_players;
 		var instance = {
+			scoreboard: [],
 			whoseTurn: whoseTurn,
 			pinNo: data.pinNo,
 			gametype: data.gameType,
@@ -146,7 +160,6 @@ io.on('connection', function(socket) {
 			turn_phase: 0,
 			lastPersonPlayed: -1,
 		};
-
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
 	});
@@ -186,6 +199,11 @@ io.on('connection', function(socket) {
 
 				//check if game server is full, if full, start game
 				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
+
+					// initialising scoreboard
+					for(let i = 0;i<gameInstances[gameInstancesIndex].num_players;i++){
+						gameInstances[gameInstancesIndex].scoreboard.push({name:gameInstances[gameInstancesIndex].player.list[i].name, score: gameInstances[gameInstancesIndex].player.list[i].score})
+					}
 
 					// initialising the deck
 					gameInstances[gameInstancesIndex].deck.generate_deck();
@@ -449,23 +467,73 @@ io.on('connection', function(socket) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var whoseTurn = (data.whoseTurn + 1)%4;
-		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+		var playedcards = data.played_cards;
+		var msg = "";
 
-		//Checks if all the players have played a card
-		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
-				counter++;
-			}
+		if(playedcards.length === 4){
+			playedcards = [];
 		}
-		if(counter === 4){
+		playedcards.push({card:data.played_card, player_index:(data.player_index)});
 
-		}
-		else{
-			var msg = "Player " + (data.player_index+1) + " played " + data.played_card.name + ". " + "Waiting for Player " + (whoseTurn+1) + "...";
-			io.sockets.in(data.pinNo).emit('NextTurn', {
+		//Checks if starting a trick
+		if(playedcards.length === 1){
+			msg = "Player " + (data.player_index+1) + " starts the trick with " + data.played_card.name + "! Waiting for Player " + (whoseTurn+1) + "...";
+			io.sockets.in(data.pinNo).emit('StartTrick', {
 				message: msg,
 				whoseTurn: whoseTurn,
+				played_suit: data.played_card.suit,
+				played_cards: playedcards,
+				break_hearts: data.break_hearts,
 			});
+			return;
+		}
+
+		//Checks if all the players have played a card
+		else if(playedcards.length === 4){
+			var winningplayer = -1,max = -1, points = 0,card_index = -1;
+			for(let j = 0; j<4;j++){
+				if(playedcards[j].card.suit === data.played_suit && playedcards[j].card.value.num > max){
+					max = playedcards[j].card.value.num;
+					winningplayer = playedcards[j].player_index;
+					card_index = j;
+				}
+				points += HeartsValue(playedcards[j].card);
+			}
+			gameInstances[gameInstanceIndex].scoreboard[winningplayer].score += points;
+			// Checks if the game has ended
+			if(data.num_tricks === 13){
+				msg = "Round " + (data.num_game + 1) + " has ended! Player " + (winningplayer +1) + " won the last trick!"
+				io.sockets.in(data.pinNo).emit('NextRound', {
+					message: msg,
+					whoseTurn: winningplayer,
+					scoreboard: scoreboard,
+					played_cards: playedcards,
+				});
+			}
+			else{
+				var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
+				msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
+				io.sockets.in(data.pinNo).emit('NextTrick', {
+					message: msg,
+					whoseTurn: winningplayer,
+					scoreboard: scoreboard,
+					played_cards: playedcards,
+					break_hearts: data.break_hearts,
+					num_tricks: data.num_tricks + 1,
+				});
+			}
+			return;
+		}
+		else{
+			msg = "Player " + (data.player_index+1) + " played " + data.played_card.name + ". " + "Waiting for Player " + (whoseTurn+1) + "...";
+			io.sockets.in(data.pinNo).emit('NextTurn', {
+				played_cards: playedcards,
+				message: msg,
+				whoseTurn: whoseTurn,
+				played_suit: data.played_suit,
+				break_hearts: data.break_hearts
+			});
+			return;
 		}
 
 	})

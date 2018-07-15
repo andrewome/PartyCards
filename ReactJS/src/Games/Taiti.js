@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './Games.css';
-import Scoreboard from './scoreboard';
+import GameInfo from './GameInfo';
 import Sort from './sorting';
+import Scoreboard from './scoreboard'
 
 //importing card images using webpack
 function importAll(r) {
@@ -15,7 +16,21 @@ const images = importAll(require.context('./card_images', false, /\.(png|jpe?g|s
 class Taiti extends Component {
 	constructor(props) {
 		super(props);
-		
+
+		this.state = {
+			whoseTurn: -1,
+			server_PIN: this.props.server_PIN,
+			last_action_tb: "Taiti!",
+			message: "Waiting for players...",
+			selected_cards: [],
+			last_played_cards: [],
+			Discard_pile: [],
+			playerID: -1,
+			player_hand: [],
+			player_index: -1,
+			scoreboard: [],
+		}
+
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
 			var msg = ('Last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first because he has 3 of diamonds');
@@ -26,17 +41,17 @@ class Taiti extends Component {
 					break;
 				}
 			}
-
 			this.setState ({
 				turn_phase: 0,
 				server_PIN: data.pinNo,
 				whoseTurn: parseInt(data.whoseTurn),
 				player_hand: data.player.list[i].hand,
 				player_index: parseInt(i),
-				playerID: data.player.list[i].ID
+				playerID: data.player.list[i].ID,
+				scoreboard: data.scoreboard,
 			});
 		}.bind(this));
-		
+
 		//Receiving data from server
 		this.props.socket.on('taitiSubmitServer', function (data, msg) {
 			this.setState ({
@@ -44,8 +59,8 @@ class Taiti extends Component {
 				Discard_pile: data.Discard_pile,
 				last_played_cards: data.last_played_cards,
 				last_action_tb: msg,
-			});			
-		
+			});
+
 			//update private states, get client's index by linear searching
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id === this.props.socket.id) {
@@ -65,22 +80,9 @@ class Taiti extends Component {
 				msg = 'Waiting on player ' + (data.whoseTurn + 1) + " to make a move...";
 				this.setState({message: msg});
 			}
-		}.bind(this));	
-		
-		this.state = {
-			whoseTurn: -1,
-			server_PIN: this.props.server_PIN,
-			last_action_tb: "Taiti!",
-			message: "Waiting for players...",
-			selected_cards: [],
-			last_played_cards: [],
-			Discard_pile: [],
-			playerID: -1,
-			player_hand: [],
-			player_index: -1,
-		}
+		}.bind(this));
 	}
-	
+
 	//return strength of a card normally (2 is the largest in Taiti)
 	defaultSymToNum = (sym) => {
 		switch(sym) {
@@ -114,7 +116,7 @@ class Taiti extends Component {
 				return -1;
 		}
 	}
-	
+
 	//return strength of a card in a straight
 	straightSymToNum = (sym) => {
 		switch(sym) {
@@ -164,7 +166,7 @@ class Taiti extends Component {
 				return -1;
 		}
 	}
-	
+
 	//checks if a selection of cards is of a valid combination, assumes hand is sorted
 	//returns -1 if false, returns other values for valid combinations (just not -1)
 	//single = 10, double = 11, straight = 0, flush = 1, four of a kind = 2, full house = 3, straight flush = 4
@@ -174,7 +176,7 @@ class Taiti extends Component {
 		if(!(cards.length === 1 || cards.length === 2 || cards.length === 5)) {
 			return -1;
 		}
-		
+
 		if(cards.length === 1) {
 			return 10;
 		}
@@ -189,7 +191,7 @@ class Taiti extends Component {
 		}
 
 		if(cards.length === 5) {
-			
+
 			// checking for 4 of a kind
 			var count;
 			for(i=0;i<5;i++) {
@@ -206,7 +208,7 @@ class Taiti extends Component {
 					return 3;
 				}
 			}
-			
+
 			// checking for full house
 			var triplets = 0, doubles = 0;
 			for(i=0;i<5;i++) {
@@ -225,11 +227,11 @@ class Taiti extends Component {
 				else if(count === 2) {
 					doubles++;
 				}
-			}			
+			}
 			if(triplets === 3 && doubles === 2) {
 				return 2;
 			}
-			
+
 			//checking for flush and straights
 			var flush = false, straight = false;
 			for(i=0;i<5;i++) {
@@ -246,7 +248,7 @@ class Taiti extends Component {
 					flush = true;
 				}
 			}
-			
+
 			count = 0;
 			for(i=0;i<5;i++) {
 				if(i !== 4 && this.straightSymToNum(cards[i].value.sym)+1 === this.straightSymToNum(cards[i+1].value.sym)) {
@@ -256,7 +258,7 @@ class Taiti extends Component {
 			if(count === 4) {
 				straight = true;
 			}
-			
+
 			if(flush && straight) {
 				return 4;
 			}
@@ -271,7 +273,7 @@ class Taiti extends Component {
 			}
 		}
 	}
-	
+
 	//This function handles the values submitted during user turn
 	handleSubmit = (e) => {
 		var selected_cards_sorted = this.state.selected_cards;
@@ -282,18 +284,18 @@ class Taiti extends Component {
 		var selected_highest, last_played_highest, i, j, count, selected_largest, last_played_largest;
 		var selected_type = this.checkValidity(selected_cards_sorted), last_played_type = this.checkValidity(last_played_cards_sorted);
 		var first, second, selected_triplet, last_played_triplet;
-		
+
 		//if last_played_cards array length is 0, means that the round has resetted
 		if(this.state.last_played_cards.length === 0) {
 			isReset = true;
 		}
-		
+
 		if(this.state.selected_cards.length === 0) {
 			msg = "You cannot submit 0 cards. Use the pass option instead!";
 			valid = false;
 		}
-		
-		
+
+
 		//check if the combination of cards is valid
 		if(selected_type !== -1) {
 			valid = true;
@@ -302,7 +304,7 @@ class Taiti extends Component {
 			msg = "Combination isn't valid";
 			valid = false;
 		}
-		
+
 		//compare with previously played card
 		if(!isReset && valid) {
 			// if number of last played cards is larger than selected cards, then the move is obviously invalid
@@ -310,16 +312,16 @@ class Taiti extends Component {
 				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
 				valid = false;
 			}
-			
+
 			// if the number of played cards(checked if it is a valid combo) > last played cards, then move is valid
 			else if(this.state.last_played_cards.length < this.state.selected_cards.length) {
 				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
 				valid = false;
 			}
-			
+
 			// if number of cards are the same
 			else if(this.state.last_played_cards.length === this.state.selected_cards.length) {
-				
+
 				//singles check; value first, then suit
 				if(this.state.selected_cards.length === 1) {
 					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
@@ -339,7 +341,7 @@ class Taiti extends Component {
 						valid = true;
 					}
 				}
-				
+
 				//doubles check; value first, then suit
 				else if(this.state.selected_cards.length === 2) {
 					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
@@ -356,7 +358,7 @@ class Taiti extends Component {
 						else {
 							last_played_highest = this.suitToNum(this.state.last_played_cards[1].suit);
 						}
-						
+
 						if(selected_highest > last_played_highest) {
 							valid = true;
 						}
@@ -364,7 +366,7 @@ class Taiti extends Component {
 							msg = "Suit of card played is smaller than suit of last played card";
 							valid = false;
 						}
-						
+
 					}
 					else if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) < this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
 						msg = "Value of card played is smaller than value of last played card";
@@ -374,7 +376,7 @@ class Taiti extends Component {
 						valid = true;
 					}
 				}
-				
+
 				//5 card combinations here
 				else if (this.state.selected_cards.length === 5) {
 					//check type of 5 card combination; straight flush(4) > 4 of a kind(3) > full house(2) > flush(1) > straight(0)
@@ -408,16 +410,16 @@ class Taiti extends Component {
 								valid = false;
 							}
 						}
-						
+
 						// if it's flush check suit first, if suit is the same tiebreaker by looking at largest value
 						else if(selected_type === 1) {
-							
+
 							selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
 							last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
-							
+
 							selected_largest = -1;
 							last_played_largest = -1;
-							
+
 							for(i=0;i<5;i++) {
 								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) > selected_largest) {
 									selected_largest = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
@@ -443,17 +445,17 @@ class Taiti extends Component {
 								msg = "Suit of selected cards is smaller than that of previously played cards";
 								valid = false;
 							}
-						}						
-					
+						}
+
 						// if it's a full house, look at value of the triplet
 						else if(selected_type === 2) {
-							
+
 							//find the triplet for selected cards
 							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
 							count = 0;
 							for(i=1;i<5;i++) {
 								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);	
+									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
 								}
 								else {
 									count++;
@@ -465,13 +467,13 @@ class Taiti extends Component {
 							else {
 								selected_triplet = second;
 							}
-							
+
 							//find triplet for last played card
 							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
 							count = 0;
 							for(i=1;i<5;i++) {
 								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);	
+									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
 								}
 								else {
 									count++;
@@ -483,7 +485,7 @@ class Taiti extends Component {
 							else {
 								last_played_triplet = second;
 							}
-							
+
 							//if value of triplet is larger, it is valid
 							if(selected_triplet > last_played_triplet) {
 								valid = true;
@@ -493,11 +495,11 @@ class Taiti extends Component {
 								valid = false;
 							}
 						}
-												
+
 						//if it's four of a kind, look at value of the four only.
 						else if(selected_type === 3) {
 							var selected_four_val, last_played_four_val;
-							
+
 							//find value and suit of selected cards
 							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
 							count = 1;
@@ -508,14 +510,14 @@ class Taiti extends Component {
 								else {
 									count++;
 								}
-							}							
+							}
 							if(count === 4) {
 								selected_four_val = first;
 							}
 							else {
 								selected_four_val = second;
 							}
-							
+
 							// rinse and repeat for last played cards
 							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
 							count = 1;
@@ -533,7 +535,7 @@ class Taiti extends Component {
 							else {
 								last_played_four_val = second;
 							}
-							
+
 							// now compare values
 							if(selected_four_val > last_played_four_val) {
 								valid = true;
@@ -546,7 +548,7 @@ class Taiti extends Component {
 
 						//straight flush - look at value first, followed by largest suit.
 						else if(selected_type === 4) {
-							
+
 							selected_highest = this.suitToNum(this.state.selected_cards_sorted[4].suit);
 							last_played_highest = this.suitToNum(this.state.last_played_cards_sorted[4].suit);
 							selected_largest = this.straightSymToNum(this.state.selected_cards_sorted[4].value.sym);
@@ -573,7 +575,7 @@ class Taiti extends Component {
 				}
 			}
 		}
-		
+
 		if(valid) {
 			this.props.socket.emit('taitiSubmitClient', {
 				player_index: this.state.player_index,
@@ -590,7 +592,7 @@ class Taiti extends Component {
 		}
 		e.preventDefault();
 	}
-	
+
 	//this function handles passing of turn
 	handlePass = () => {
 		this.props.socket.emit('taitiSubmitClient', {
@@ -602,7 +604,7 @@ class Taiti extends Component {
 		//clear selected cards hand
 		this.setState({selected_cards: []});
 	}
-	
+
 	disableSelectButton = (index, whoseTurn) => {
 		if(whoseTurn === index) {
 			return false;
@@ -610,7 +612,7 @@ class Taiti extends Component {
 		else {
 			return true;
 		}
-	}	
+	}
 
 	render() {
 		var playerhand = this.state.player_hand;
@@ -620,9 +622,9 @@ class Taiti extends Component {
 		var last_played_cards = this.state.last_played_cards
 		Sort.byValue(last_played_cards);
 		var stylename = "cards"
-		
-		const list_last_played = last_played_cards.map((d) => <img className = "scards"  src = {images[d.value.sym + d.suit[0] + '.png']} />);				
-		
+
+		const list_last_played = last_played_cards.map((d) => <img className = "scards"  src = {images[d.value.sym + d.suit[0] + '.png']} />);
+
 		const listHand = playerhand.map((d) =>
 			<img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
@@ -637,9 +639,9 @@ class Taiti extends Component {
 				}}
 			/>
 		);
-		
+
 		const listCards = selectedcards.map((d) =>
-			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']} 
+			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = { () => {
 					if(this.disableSelectButton(this.state.player_index, this.state.whoseTurn)){
 					return;
@@ -654,14 +656,15 @@ class Taiti extends Component {
 
 		return (
 			<div className = "Parent">
-				<div className = "scoreboard">
-					<Scoreboard 
+				<div>
+					<GameInfo
 						server_PIN = {this.state.server_PIN}
 						GameName = "Taiti"
-						num_players = {this.props.num_players} 
+						num_players = {this.props.num_players}
 						whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 					/>
+					<Scoreboard scoreboard = {this.state.scoreboard}/>
 				</div>
 				<p>Last Played Cards:</p>
 				<div className = "hand">
@@ -671,19 +674,19 @@ class Taiti extends Component {
 				<div className = "hand">
 					{listHand}
 				</div>
-				
+
 				<p>Selected cards:</p>
 				<div className = "hand">
 					{listCards}
 				</div>
-				
+
 				<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleSubmit}>Submit</button>
 				<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handlePass}>Pass</button>
-				
+
 				<div className = "statusbox">
 					<p>{this.state.message}</p>
 				</div>
-				
+
 				<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 			</div>
 		);

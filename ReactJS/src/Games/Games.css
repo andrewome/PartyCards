@@ -3,7 +3,7 @@
 	border-style: solid;
 	box-shadow: 0 2px 2px #ccc;
 	width: 250px;
-	display: block;
+	display: inline-block;
 	margin: 20px;
 	padding: 10px;
 	box-shadow: 20px;
