@@ -366,18 +366,20 @@ io.on('connection', function(socket) {
 ------------------------*/
 
 	socket.on('taitiSubmitClient', function(data) {
-		let msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!"
+		var msg;
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 
 		//check if passvote is true or false
 		if(data.passVote) {
+			//change passVote status
+			gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 0;
 
-		//change passVote status
-		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 0;
-
-		//increment to next person's turn
-		gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+			//increment to next person's turn
+			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
+			
+			msg = "Player " + (data.whoseTurn + 1) + " has passed his/her turn!";
 		}
+		
 		else {
 			//remove cards from player's hand and add to discard pile
 			for(var i=0;i<data.selected_cards.length;i++) {
@@ -388,7 +390,9 @@ io.on('connection', function(socket) {
 					}
 				}
 			}
-
+			
+			msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!";
+			
 			//change last played cards, and change to next player's turn
 			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
@@ -399,17 +403,31 @@ io.on('connection', function(socket) {
 		//reset last_played_cards to an empty array
 		if(gameInstances[gameInstanceIndex].lastPersonPlayed === gameInstances[gameInstanceIndex].whoseTurn) {
 			gameInstances[gameInstanceIndex].last_played_cards = [];
-			msg = "Everybody has passed and it has reached back to player " + (gameInstances[gameInstanceIndex].whoseTurn + 1);
+			msg = "Everybody has passed! Player " + (gameInstances[gameInstanceIndex].whoseTurn + 1) + " starts the round";
 		}
 		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex], msg);
+			
+		var winner_found = false;
+		//Check if there's any winners (empty hands) past this stage
+		for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].hand.length == 0) {
+				winner_found = true;
+				break;
+			}
+		}
+		if(winner_found) {
+			io.sockets.in(data.pinNo).emit('taitiWinnerFound', i);
+		}		
 	});
-	/*-----------------------
-	|						 |
-	|						 |
-	|'Hearts' functions here  |
-	|						 |
-	|						 |
-	------------------------*/
+	
+	
+/*-----------------------
+|						 |
+|						 |
+|'Hearts' functions here |
+|						 |
+|						 |
+------------------------*/
 	socket.on('PassCards', function(data) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;

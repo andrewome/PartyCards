@@ -81,6 +81,15 @@ class Taiti extends Component {
 				this.setState({message: msg});
 			}
 		}.bind(this));
+		
+		//When there is a winner
+		this.props.socket.on('taitiWinnerFound', function(player_index) {
+			var msg = 'Player ' + (player_index + 1) + ' has won the game!!!!!!';
+			this.setState({last_action_tb: msg});
+			alert(msg);
+			alert('Shutting down the server. Re-create the server from the main page.');
+			window.location.reload(true);
+		}.bind(this));
 	}
 
 	//return strength of a card normally (2 is the largest in Taiti)
@@ -575,7 +584,22 @@ class Taiti extends Component {
 				}
 			}
 		}
-
+		
+		//check if the rest of the hand does not consist of 2's
+		if(this.state.player_hand.length <= 4 && this.state.player_hand.length > 0) {
+			count = 0;
+			for(i=0;i<this.state.player_hand.length;i++) {
+				if(this.state.player_hand[i].value.num === 0) {
+					count++;
+				}
+			}
+			
+			if(count === this.state.player_hand.length) {
+				msg = "You cannot end the game with a 2!";
+				valid = false;
+			}
+		}
+		
 		if(valid) {
 			this.props.socket.emit('taitiSubmitClient', {
 				player_index: this.state.player_index,
