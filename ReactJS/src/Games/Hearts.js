@@ -32,6 +32,7 @@ class Hearts extends Component{
       break_hearts: 0,
       passed_cards: [],
       scoreboard: [],
+      starting: 0,
       show_passed: 0,
     }
     this.props.socket.on('startGame', function(data) {
@@ -52,7 +53,7 @@ class Hearts extends Component{
         scoreboard: data.scoreboard,
 
 			});
-      var msg = 'The last man has joined! Choose 3 cards to pass to ' + this.PassWhere() + '!';
+      var msg = 'The last man has joined! Choose 3 cards to pass to ' + this.PassWhere(this.state.num_game) + '!';
       this.setState({message: msg});
 		}.bind(this));
 
@@ -73,10 +74,11 @@ class Hearts extends Component{
         selected_cards : [],
         player_hand: data.gameinstance.player.list[this.state.player_index].hand,
         message: data.msg,
-        num_tricks: 1,
+        num_tricks: 12,
         whoseTurn: data.whoseTurn,
         passed_cards: passedcards,
         show_passed : 1,
+        starting: 1,
       })
     }.bind(this));
 
@@ -100,6 +102,7 @@ class Hearts extends Component{
         selected_cards: [],
         break_hearts: data.break_hearts,
         show_passed: 0,
+        starting: 0,
       })
 		}.bind(this));
     this.props.socket.on('NextTrick', function(data) {
@@ -124,10 +127,31 @@ class Hearts extends Component{
         votenext: 1,
       })
 		}.bind(this));
+    this.props.socket.on('StartNextGame',function(data){
+      var msg = "";
+      if(!(data.num_game%4)){
+        msg = "No pass round! Waiting for Player " + (data.whoseTurn+1) + " to start the game with 2 of Clubs..."
+      }
+      else{
+        msg = "Game " + data.num_game + " is starting! " + "Choose 3 cards to pass to " + this.PassWhere(data.num_game) + '!'
+      }
+
+      this.setState ({
+        num_tricks: data.num_tricks, // passing phase
+        player_hand: data.gameinstance.player.list[this.state.player_index].hand,
+        num_game: data.num_game,
+        message: msg,
+        whoseTurn: data.whoseTurn,
+        votenext: 0,
+        played_cards:[],
+        starting: 1,
+      });
+
+    }.bind(this));
   }
 
-  PassWhere = () =>{
-    switch(this.state.num_game % this.state.num_players){
+  PassWhere = (numgame) =>{
+    switch(numgame % 4){
       case 0:
       return -1;
       case 1:
@@ -163,7 +187,7 @@ class Hearts extends Component{
       this.setState({message: "You need to pick a card to play!"});
     }
     //Checks whether player has to play 2 of Clubs to start the game
-    if(this.state.num_tricks === 0 && this.state.selected_cards[0].name !== "2 of Clubs"){
+    if(this.state.starting && this.state.selected_cards[0].name !== "2 of Clubs"){
       this.setState({message: "You need to play 2 of Clubs to start the game!"});
       return;
     }
@@ -225,6 +249,14 @@ class Hearts extends Component{
       played_cards: this.state.played_cards,
       num_tricks: this.state.num_tricks,
       break_hearts: breakhearts,
+      num_game: this.state.num_game,
+    })
+  }
+
+  handleVoteNextGame = () =>{
+    this.props.socket.emit("VoteNextGame",{
+      player_index: this.state.player_index,
+      pinNo: this.state.server_PIN,
       num_game: this.state.num_game,
     })
   }
@@ -307,8 +339,8 @@ class Hearts extends Component{
           <button className = "button" disabled = {this.state.num_tricks !== -1}
           onClick = {this.handlePassCards}
           >Pass Cards</button>
-          <button className = "button" disabled = {this.state.whoseTurn !== this.state.player_index} onClick = {this.handlePlayCard}>Play Card</button>
-          <button className = "button" hidden = {!this.state.vote_next}>Start next game!</button>
+          <button className = "button" disabled = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
+          <button className = "button" hidden = {!this.state.votenext} onClick = {this.handleVoteNextGame}>Start next game!</button>
         </div>
         <div className = "statusbox">
 					<p>{this.state.message}</p>

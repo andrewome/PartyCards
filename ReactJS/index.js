@@ -214,6 +214,7 @@ io.on('connection', function(socket) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
 						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
+					gameInstances[gameInstancesIndex].player.resetPassVotes();
 
 					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
 					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
@@ -376,10 +377,10 @@ io.on('connection', function(socket) {
 
 			//increment to next person's turn
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
-			
+
 			msg = "Player " + (data.whoseTurn + 1) + " has passed his/her turn!";
 		}
-		
+
 		else {
 			//remove cards from player's hand and add to discard pile
 			for(var i=0;i<data.selected_cards.length;i++) {
@@ -390,9 +391,9 @@ io.on('connection', function(socket) {
 					}
 				}
 			}
-			
+
 			msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!";
-			
+
 			//change last played cards, and change to next player's turn
 			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
@@ -406,7 +407,7 @@ io.on('connection', function(socket) {
 			msg = "Everybody has passed! Player " + (gameInstances[gameInstanceIndex].whoseTurn + 1) + " starts the round";
 		}
 		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex], msg);
-			
+
 		var winner_found = false;
 		//Check if there's any winners (empty hands) past this stage
 		for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {
@@ -417,10 +418,10 @@ io.on('connection', function(socket) {
 		}
 		if(winner_found) {
 			io.sockets.in(data.pinNo).emit('taitiWinnerFound', i);
-		}		
+		}
 	});
-	
-	
+
+
 /*-----------------------
 |						 |
 |						 |
@@ -432,14 +433,17 @@ io.on('connection', function(socket) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
+		var dir = "";
 		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
 		gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
 		//Passing the Cards
 		if(data.passwhere === 1){
+			dir = "left"
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand.concat(data.selected_cards);
 		}
 		//Pass right
 		else if(data.passwhere === 2){
+			dir = "right"
 			let index = data.player_index-1;
 			if(index < 0){
 				index += 4;
@@ -448,12 +452,13 @@ io.on('connection', function(socket) {
 		}
 		//Pass opposite
 		else if(data.passwhere === 3){
+			dir = "opposite"
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
 
 		}
 		//Checks if all the players have chosen the three cards to pass
 		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === -1) {
 				counter++;
 				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
 			}
@@ -470,14 +475,14 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].player.resetPassVotes();
 			io.sockets.in(data.pinNo).emit('PassedCards',{
 				gameinstance: gameInstances[gameInstanceIndex],
-				msg: "Everybody has passed their cards! Waiting for Player " + (turn+1) + " to start the game with 2 of Clubs",
+				msg: "Everybody has passed their cards! Waiting for Player " + (turn+1) + " to start the game with 2 of Clubs...",
 				whoseTurn : turn,
 			})
 			return;
 		}
 		//Not everybody has selected their cards. Prints out waiting message...
 		else{
-			var msg = "Waiting on player(s):" + waitplayers.join() + "to choose their 3 cards..."
+			var msg = "Waiting on player(s):" + waitplayers.join() + "to choose their 3 cards to pass " + dir + "..."
 			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
 		}
 	});
@@ -518,9 +523,21 @@ io.on('connection', function(socket) {
 				points += HeartsValue(playedcards[j].card);
 			}
 			gameInstances[gameInstanceIndex].scoreboard[winningplayer].score += points;
+			var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
 			// Checks if the game has ended
 			if(data.num_tricks === 13){
-				msg = "Round " + (data.num_game + 1) + " has ended! Player " + (winningplayer +1) + " won the last trick!"
+				/*var gameEnd = 0,ShotMoon = 0,leastscore = 999, leastplayer = -1;
+				//Check if anyone has won the game (i.e) points > 100
+				for(let i = 0;i<4;i++){
+					//Check who is in first place then need check draw
+					if(gameInstances[gameInstanceIndex].scoreboard[i].score < leastscore){
+						leastscore = gameInstances[gameInstanceIndex].scoreboard[i].score;
+					}
+					if(gameInstances[gameInstanceIndex].scoreboard[i].score >= 100){
+						gameEnd = 0;
+					}
+				}*/
+				msg = "Round " + (data.num_game) + " has ended! Player " + (winningplayer +1) + " won the last trick!"
 				io.sockets.in(data.pinNo).emit('NextRound', {
 					message: msg,
 					whoseTurn: winningplayer,
@@ -529,7 +546,6 @@ io.on('connection', function(socket) {
 				});
 			}
 			else{
-				var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
 				msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
 				io.sockets.in(data.pinNo).emit('NextTrick', {
 					message: msg,
@@ -553,6 +569,66 @@ io.on('connection', function(socket) {
 			});
 			return;
 		}
+	})
+	socket.on("VoteNextGame",function(data){
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var counter = 0;
+		var waitplayers = [];
+		var msg;
+		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+
+		//Checks if all the players have chosen move on to the next game
+		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === -1) {
+				counter++;
+				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
+			}
+		}
+		//Everybody voted next game
+		if(counter === 0){
+			// initialising the deck
+			gameInstances[gameInstanceIndex].deck.shuffle();
+
+			// dealing out the cards
+			while(gameInstances[gameInstanceIndex].deck.size() != 0) {
+				let card = gameInstances[gameInstanceIndex].deck.deal();
+				gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
+			}
+			gameInstances[gameInstanceIndex].player.resetPassVotes();
+			//If the next round is a no pass round...
+			if(!((data.num_game+ 1)%4)){
+				for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++){
+					let index = gameInstances[gameInstanceIndex].player.list[i].hand.findIndex(d => d.name === "2 of Clubs");
+					if(index != -1){
+						var turn = i;
+						break;
+					}
+				}
+				io.sockets.in(data.pinNo).emit('StartNextGame',{
+					gameinstance: gameInstances[gameInstanceIndex],
+					num_game : data.num_game + 1,
+					whoseTurn: turn,
+					num_tricks: 1,
+				})
+				return;
+			}
+			else{
+				io.sockets.in(data.pinNo).emit('StartNextGame',{
+					gameinstance: gameInstances[gameInstanceIndex],
+					num_game : data.num_game + 1,
+					whoseTurn: -1,
+					num_tricks: -1,
+				})
+				return;
+			}
+		}
+		//Not everybody has selected their cards. Prints out waiting message...
+		else{
+			msg = "Waiting on player(s):" + waitplayers.join() + "to vote next round..."
+			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
+			return;
+		}
+
 
 	})
 });
