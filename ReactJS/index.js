@@ -472,8 +472,8 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].player.list[(index)%4].hand = gameInstances[gameInstanceIndex].player.list[(index)%4].hand.concat(data.selected_cards);
 		}
 		//Pass opposite
-		dir = "opposite";
 		else if(data.passwhere === 3){
+			dir = "opposite";
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
 
 		}
