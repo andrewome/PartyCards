@@ -76,7 +76,7 @@ class Hearts extends Component{
         selected_cards : [],
         player_hand: data.gameinstance.player.list[this.state.player_index].hand,
         message: data.msg,
-        num_tricks: 12,
+        num_tricks: 1,
         whoseTurn: data.whoseTurn,
         passed_cards: passedcards,
         show_passed : 1,

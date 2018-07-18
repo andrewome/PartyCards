@@ -237,7 +237,7 @@ io.on('connection', function(socket) {
 
 						// initialising scoreboard
 						for(let i = 0;i<gameInstances[gameInstanceIndex].num_players;i++){
-							gameInstances[gameInstanceIndex].scoreboard.push({name:gameInstances[gameInstanceIndex].player.list[i].name, score: 99+i, rdscore: 0})
+							gameInstances[gameInstanceIndex].scoreboard.push({name:gameInstances[gameInstanceIndex].player.list[i].name, score: gameInstances[gameInstanceIndex].player.list[i].score, rdscore: 0})
 						}
 
 						// initialising the deck
