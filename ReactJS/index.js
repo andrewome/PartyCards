@@ -244,13 +244,6 @@ io.on('connection', function(socket) {
 						gameInstances[gameInstanceIndex].deck.generate_deck();
 						gameInstances[gameInstanceIndex].deck.shuffle();
 
-						// dealing out the cards
-						while(gameInstances[gameInstanceIndex].deck.size() != 0) {
-							let card = gameInstances[gameInstanceIndex].deck.deal();
-							gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
-						}
-						gameInstances[gameInstanceIndex].player.resetPassVotes();
-
 						//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
 						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf()) {
 							for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
@@ -261,7 +254,27 @@ io.on('connection', function(socket) {
 									}
 								}
 							}
+						}						
+
+						// dealing out the cards
+						// for taiti, if number of players = 3, means there'll be an excess card. This card goes to the holder of the 3 of diamonds
+						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf() && gameInstances[gameInstanceIndex].num_players === 3) {
+							var count = 0;
+							for(i=0;i<51;i++) {
+								let card = gameInstances[gameInstanceIndex].deck.deal();
+								gameInstances[gameInstanceIndex].player.list[count % gameInstances[gameInstanceIndex].num_players].hand.push(card);
+								count++;
+							}
+							let card = gameInstances[gameInstanceIndex].deck.deal();
+							gameInstances[gameInstanceIndex].player.list[gameInstances[gameInstanceIndex].whoseTurn].hand.push(card);			
 						}
+						else {					
+							while(gameInstances[gameInstanceIndex].deck.size() !== 0) {
+								let card = gameInstances[gameInstanceIndex].deck.deal();
+								gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
+							}
+						}
+						gameInstances[gameInstanceIndex].player.resetPassVotes();
 
 						//if game is cheat/taiti, the scores are the number of cards in ones hand
 						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf() || gameInstances[gameInstanceIndex].gametype.valueOf() === "Cheat".valueOf()) {

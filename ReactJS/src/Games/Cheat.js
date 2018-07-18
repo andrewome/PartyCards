@@ -296,6 +296,8 @@ class Cheat extends Component {
 			whoseTurn: this.state.whoseTurn,
 			cheatVote: false,
 		});
+		
+		this.setState({turn_phase: 0});
 	}
 
 	disableSelectButton = (phase, index, whoseTurn) => {
@@ -372,103 +374,68 @@ class Cheat extends Component {
 			/>);
 
 		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
-		if(parseInt(this.state.declared_cards.num) === -1 && this.state.declared_cards.val === -1) {
-			return (
-				<div className = "Parent">
-					<div className = "scoreboard">
-						<GameInfo
-							server_PIN = {this.props.server_PIN}
-							GameName = {this.props.GameName}
-							num_players = {this.props.num_players}
-							current_players = {this.props.current_players}
-							whoseTurn = {this.state.whoseTurn}
-						/>
+
+		return (
+			<div className = "Parent">
+				<div className = "scoreboard">
+					<GameInfo
+						server_PIN = {this.props.server_PIN}
+						GameName = {this.props.GameName}
+						num_players = {this.props.num_players}
+						current_players = {this.props.current_players}
+						whoseTurn = {this.state.whoseTurn}
+					/>
 						
-						<Scoreboard
-							GameName = {this.props.GameName}
-							whoseTurn = {this.state.whoseTurn}
-							player_index = {this.state.player_index}
-							scoreboard = {this.state.scoreboard}
-						/>
-					</div>
-
-					<p>Your hand:</p>
-					<div className = "hand">
-						{listHand}
-					</div>
-
+					<Scoreboard
+						GameName = {this.props.GameName}
+						whoseTurn = {this.state.whoseTurn}
+						player_index = {this.state.player_index}
+						scoreboard = {this.state.scoreboard}
+					/>
+				</div>
+				
+				{(!(parseInt(this.state.declared_cards.num) === -1 && this.state.declared_cards.val === -1)) &&
+					<p>Last declared card(s): <h1>{this.state.declared_cards.num} cards of {this.state.declared_cards.val}</h1></p>
+				}
+				
+				<p>Your hand:</p>
+				<div className = "hand">
+					{listHand}
+				</div>
+				
+				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
 					<p>Selected cards:</p>
+				}
+				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
 					<div className = "hand">
 						{listCards}
 					</div>
-
+				}
+				
+				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
 					<form onSubmit = {this.handleSubmit.bind(this)}>
 						<label className = "label">Choose the card you are going to play:</label>
-							<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
+							<select ref = "val" className = "dropdown">
 								{listvaloptions}
 							</select>
-						<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
+						<input type = "submit" value = "Play cards"/>
 					</form>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
-
-					<div className = "statusbox">
-						<p>{this.state.message}</p>
-					</div>
-
-					<h1 className = "discardpile">{this.state.last_action_tb}</h1>
+				}
+				
+				{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && 
+					<button className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
+				}
+				{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && 
+					<button className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+				}
+				
+				<div className = "statusbox">
+					<p>{this.state.message}</p>
 				</div>
-			);
-		}
-		else {
-			return (
-				<div className = "Parent">
-					<div className = "scoreboard">
-						<GameInfo
-							server_PIN = {this.props.server_PIN}
-							GameName = {this.props.GameName}
-							num_players = {this.props.num_players}
-							current_players = {this.props.current_players}
-							whoseTurn = {this.state.whoseTurn}
-						/>
-						
-						<Scoreboard
-							GameName = {this.props.GameName}
-							whoseTurn = {this.state.whoseTurn}
-							player_index = {this.state.player_index}
-							scoreboard = {this.state.scoreboard}
-						/>
-					</div>
-					
-					<p>Last declared cards: {this.state.declared_cards.num} cards of {this.state.declared_cards.val}</p>
-					<p>Your hand:</p>
-					<div className = "hand">
-						{listHand}
-					</div>
 
-					<p>Selected cards:</p>
-					<div className = "hand">
-						{listCards}
-					</div>
-
-					<form onSubmit = {this.handleSubmit.bind(this)}>
-						<label className = "label">Choose the card you are going to play:</label>
-							<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
-								{listvaloptions}
-							</select>
-						<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
-					</form>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
-					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
-
-					<div className = "statusbox">
-						<p>{this.state.message}</p>
-					</div>
-
-					<h1 className = "discardpile">{this.state.last_action_tb}</h1>
-				</div>
-			);
-		}			
+				<h1 className = "discardpile">{this.state.last_action_tb}</h1>
+			</div>
+		);			
 	}
 }
 

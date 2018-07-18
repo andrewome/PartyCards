@@ -743,23 +743,37 @@ class Taiti extends Component {
 						scoreboard = {this.state.scoreboard}
 					/>
 				</div>
-				<p>Last Played Cards:</p>
-				<div className = "hand">
-					{list_last_played}
-				</div>
+				
+				{last_played_cards.length !== 0 &&
+					<p>Last Played Cards:</p>
+				}
+				{last_played_cards.length !== 0 &&
+					<div className = "hand">
+						{list_last_played}
+					</div>
+				}
+				
 				<p>Your hand:</p>
 				<div className = "hand">
 					{listHand}
 				</div>
-
-				<p>Selected cards:</p>
-				<div className = "hand">
-					{listCards}
-				</div>
-
-				<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleSubmit}>Submit</button>
-				<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handlePass}>Pass</button>
-
+				
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
+					<p>Selected cards:</p>
+				}
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
+					<div className = "hand">
+						{listCards}
+					</div>
+				}
+				
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
+					<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleSubmit}>Submit</button>
+				}
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
+					<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handlePass}>Pass</button>
+				}
+	
 				<div className = "statusbox">
 					<p>{this.state.message}</p>
 				</div>
