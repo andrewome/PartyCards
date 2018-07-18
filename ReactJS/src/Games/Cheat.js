@@ -62,6 +62,7 @@ class Cheat extends Component {
 				Discard_pile: data.Discard_pile,
 				declared_cards: data.declared_cards,
 				last_action_tb: msg,
+				scoreboard: data.scoreboard,
 			});
 
 			//update private states, get client's index by linear searching
@@ -89,6 +90,7 @@ class Cheat extends Component {
 				Discard_pile: data.Discard_pile,
 				declared_cards: data.declared_cards,
 				last_action_tb: msg,
+				scoreboard: data.scoreboard,
 			});
 
 			//update private states, get client's index by linear searching
@@ -278,10 +280,9 @@ class Cheat extends Component {
 		Sort.byValue(playerhand);
 		var valoptions = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 		var selectedcards = this.state.selected_cards;
-		var stylename = "cards"
 
 		const listHand = playerhand.map((d) =>
-			<img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
+			<img className = "cards"  src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
 					if(this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)){
 					return;
@@ -319,7 +320,10 @@ class Cheat extends Component {
 						num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 					/>
-					<Scoreboard className = "scoreboard" scoreboard = {this.state.scoreboard}/>
+					<Scoreboard
+						scoreboard = {this.state.scoreboard}
+						GameName = "Cheat"
+					/>
 				</div>
 
 				<p>Your hand:</p>

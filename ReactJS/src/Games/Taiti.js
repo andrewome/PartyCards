@@ -59,6 +59,7 @@ class Taiti extends Component {
 				Discard_pile: data.Discard_pile,
 				last_played_cards: data.last_played_cards,
 				last_action_tb: msg,
+				scoreboard: data.scoreboard,
 			});
 
 			//update private states, get client's index by linear searching
@@ -645,12 +646,11 @@ class Taiti extends Component {
 		var selectedcards = this.state.selected_cards;
 		var last_played_cards = this.state.last_played_cards
 		Sort.byValue(last_played_cards);
-		var stylename = "cards"
 
 		const list_last_played = last_played_cards.map((d) => <img className = "scards"  src = {images[d.value.sym + d.suit[0] + '.png']} />);
 
 		const listHand = playerhand.map((d) =>
-			<img className = {stylename}  src = {images[d.value.sym + d.suit[0] + '.png']}
+			<img className = "cards"  src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
 					if(this.disableSelectButton(this.state.player_index, this.state.whoseTurn)){
 					return;
@@ -688,7 +688,10 @@ class Taiti extends Component {
 						whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 					/>
-					<Scoreboard scoreboard = {this.state.scoreboard}/>
+					<Scoreboard
+						scoreboard = {this.state.scoreboard}
+						GameName = "Taiti"
+					/>
 				</div>
 				<p>Last Played Cards:</p>
 				<div className = "hand">

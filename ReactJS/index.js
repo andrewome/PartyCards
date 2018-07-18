@@ -214,7 +214,6 @@ io.on('connection', function(socket) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
 						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
-					gameInstances[gameInstancesIndex].player.resetPassVotes();
 
 					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
 					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
@@ -222,13 +221,19 @@ io.on('connection', function(socket) {
 							for(j=0;j<gameInstances[gameInstancesIndex].player.list[i].hand.length;j++) {
 								if(gameInstances[gameInstancesIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
 									gameInstances[gameInstancesIndex].whoseTurn = i;
-									console.log('3 of D found in player ' + (i + 1) + 's hand');
 									break;
 								}
 							}
 						}
 					}
-
+					
+					//if game is cheat/taiti, the scores are the number of cards in ones hand
+					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf() || gameInstances[gameInstancesIndex].gametype.valueOf() === "Cheat".valueOf()) {
+						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
+							gameInstances[gameInstancesIndex].scoreboard[i].score = gameInstances[gameInstancesIndex].player.list[i].hand.length;
+						}
+					}
+					
 					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
 					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}
@@ -265,7 +270,10 @@ io.on('connection', function(socket) {
 
 		//add declared cards
 		gameInstances[gameInstanceIndex].declared_cards = data.declared_cards;
-
+		
+		//change value of cards left in player's hand
+		gameInstances[gameInstanceIndex].scoreboard[data.player_index].score = gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;
+		
 		//update the turn phase to phase 1
 		gameInstances[gameInstanceIndex].turn_phase = 1;
 		io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase0', gameInstances[gameInstanceIndex]);
@@ -296,19 +304,25 @@ io.on('connection', function(socket) {
 				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
 					gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
 				}
+				
+				//change value of cards left in player's hand
+				gameInstances[gameInstanceIndex].scoreboard[data.player_index].score = gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;
 			}
 			// else give discard pile to accusor (player_index)
 			else {
 				for(i=0;i<gameInstances[gameInstanceIndex].Discard_pile.length;i++) {
 					gameInstances[gameInstanceIndex].player.list[data.player_index].hand.push(gameInstances[gameInstanceIndex].Discard_pile[i]);
 				}
+
+				//change value of cards left in player's hand
+				gameInstances[gameInstanceIndex].scoreboard[data.player_index].score = gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;
 			}
 
 			//empty discard pile
 			gameInstances[gameInstanceIndex].Discard_pile.splice(0, gameInstances[gameInstanceIndex].Discard_pile.length);
 
 			//generate messages
-			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Naughty naugty! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
+			var msgCheated = "Player " + (data.player_index + 1) + " guessed correctly! Player " + (data.whoseTurn + 1) + " was indeed cheating! Player " + (data.whoseTurn + 1) + " gets the entire discard pile!";
 			var msgNotCheated = "Player " + (data.player_index + 1) + " guessed incorrectly! Player " + (data.whoseTurn + 1) + " was not cheating! Better luck next time! Player " + (data.player_index + 1) + " gets the entire discard pile!";
 
 			//change phase to 0 + next person's turn + reset passVote var + reset declared card
@@ -377,10 +391,11 @@ io.on('connection', function(socket) {
 
 			//increment to next person's turn
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
-
+			
+			//generate message
 			msg = "Player " + (data.whoseTurn + 1) + " has passed his/her turn!";
 		}
-
+		
 		else {
 			//remove cards from player's hand and add to discard pile
 			for(var i=0;i<data.selected_cards.length;i++) {
@@ -390,10 +405,14 @@ io.on('connection', function(socket) {
 						gameInstances[gameInstanceIndex].player.list[data.player_index].hand.splice(j, 1);
 					}
 				}
-			}
+			}			
 
+			//generate message
 			msg = "Player " + (data.whoseTurn + 1) + " has made his/her move!";
-
+			
+			//change value of cards left in player's hand
+			gameInstances[gameInstanceIndex].scoreboard[data.whoseTurn].score = gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.length;
+			
 			//change last played cards, and change to next player's turn
 			gameInstances[gameInstanceIndex].last_played_cards = data.selected_cards;
 			gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
@@ -407,7 +426,7 @@ io.on('connection', function(socket) {
 			msg = "Everybody has passed! Player " + (gameInstances[gameInstanceIndex].whoseTurn + 1) + " starts the round";
 		}
 		io.sockets.in(data.pinNo).emit('taitiSubmitServer', gameInstances[gameInstanceIndex], msg);
-
+			
 		var winner_found = false;
 		//Check if there's any winners (empty hands) past this stage
 		for(i=0;i<gameInstances[gameInstanceIndex].player.list.length;i++) {
@@ -418,10 +437,10 @@ io.on('connection', function(socket) {
 		}
 		if(winner_found) {
 			io.sockets.in(data.pinNo).emit('taitiWinnerFound', i);
-		}
+		}		
 	});
-
-
+	
+	
 /*-----------------------
 |						 |
 |						 |
@@ -433,17 +452,14 @@ io.on('connection', function(socket) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
-		var dir = "";
 		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
 		gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
 		//Passing the Cards
 		if(data.passwhere === 1){
-			dir = "left"
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand.concat(data.selected_cards);
 		}
 		//Pass right
 		else if(data.passwhere === 2){
-			dir = "right"
 			let index = data.player_index-1;
 			if(index < 0){
 				index += 4;
@@ -452,13 +468,12 @@ io.on('connection', function(socket) {
 		}
 		//Pass opposite
 		else if(data.passwhere === 3){
-			dir = "opposite"
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
 
 		}
 		//Checks if all the players have chosen the three cards to pass
 		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-			if(gameInstances[gameInstanceIndex].player.list[i].passVote === -1) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
 				counter++;
 				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
 			}
@@ -523,7 +538,6 @@ io.on('connection', function(socket) {
 				points += HeartsValue(playedcards[j].card);
 			}
 			gameInstances[gameInstanceIndex].scoreboard[winningplayer].score += points;
-			var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
 			// Checks if the game has ended
 			if(data.num_tricks === 13){
 				/*var gameEnd = 0,ShotMoon = 0,leastscore = 999, leastplayer = -1;
@@ -537,7 +551,7 @@ io.on('connection', function(socket) {
 						gameEnd = 0;
 					}
 				}*/
-				msg = "Round " + (data.num_game) + " has ended! Player " + (winningplayer +1) + " won the last trick!"
+				msg = "Round " + (data.num_game) + " has ended! Player " + (winningplayer +1) + " won the last trick!";
 				io.sockets.in(data.pinNo).emit('NextRound', {
 					message: msg,
 					whoseTurn: winningplayer,
@@ -628,13 +642,9 @@ io.on('connection', function(socket) {
 			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
 			return;
 		}
-
-
-	})
+	});
 });
 
 /* TODO:
 - remove players from arrays (instance and gamepinlist) upon disconnection
-- fix callback issues in joinserver
-- server crashes when someone tries to join at svrcreate page
 */
