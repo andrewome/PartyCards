@@ -20,9 +20,14 @@
 }
 
 .hand {
-	margin: 5px;
-	text-align: center;
-	vertical-align: bottom;
+	display: inline;
+	margin-left: 75px;
+	margin: auto;
+}
+
+.selected-cards {
+	margin: auto;
+	display: inline;
 }
 
 .discardpile{

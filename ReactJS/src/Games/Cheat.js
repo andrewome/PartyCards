@@ -407,7 +407,7 @@ class Cheat extends Component {
 					<p>Selected cards:</p>
 				}
 				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
-					<div className = "hand">
+					<div className = "selected_cards">
 						{listCards}
 					</div>
 				}

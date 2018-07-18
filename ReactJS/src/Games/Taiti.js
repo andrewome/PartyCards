@@ -748,7 +748,7 @@ class Taiti extends Component {
 					<p>Last Played Cards:</p>
 				}
 				{last_played_cards.length !== 0 &&
-					<div className = "hand">
+					<div className = "selected_cards">
 						{list_last_played}
 					</div>
 				}
@@ -762,7 +762,7 @@ class Taiti extends Component {
 					<p>Selected cards:</p>
 				}
 				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
-					<div className = "hand">
+					<div className = "selected_cards">
 						{listCards}
 					</div>
 				}
