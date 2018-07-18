@@ -34,6 +34,7 @@ class Hearts extends Component{
       scoreboard: [],
       starting: 0,
       show_passed: 0,
+      passed: 1,
     }
     this.props.socket.on('startGame', function(data) {
 			//finding player index
@@ -51,6 +52,7 @@ class Hearts extends Component{
 				player_index: parseInt(i),
 				playerID: data.player.list[i].ID,
         scoreboard: data.scoreboard,
+        passed: 0,
 
 			});
       var msg = 'The last man has joined! Choose 3 cards to pass to ' + this.PassWhere(this.state.num_game) + '!';
@@ -145,9 +147,24 @@ class Hearts extends Component{
         votenext: 0,
         played_cards:[],
         starting: 1,
+        passed: data.passed,
+        break_hearts: 0,
       });
 
     }.bind(this));
+
+    this.props.socket.on('gameEnd',function(data){
+      this.setState({
+        message: data.message,
+        whoseTurn: -1,
+        scoreboard: data.scoreboard,
+        played_cards: data.played_cards,
+      })
+    }.bind(this));
+    //when a player disconnects
+		this.props.socket.on('playerDisconnected', function(msg) {
+			this.setState({last_action_tb: msg});
+		}.bind(this));
   }
 
   PassWhere = (numgame) =>{
@@ -170,12 +187,13 @@ class Hearts extends Component{
       this.setState({message: "You need to select 3 cards to pass"});
     }
     else if(this.state.selected_cards.length === 3){
+      this.setState({passed: 1});
       this.props.socket.emit('PassCards', {
   			player_index: this.state.player_index,
   			pinNo: this.state.server_PIN,
         passwhere: this.state.num_game % this.state.num_players,
         selected_cards: this.state.selected_cards,
-        player_hand : this.state.player_hand
+        player_hand : this.state.player_hand,
   		});
     }
 }
@@ -315,14 +333,19 @@ class Hearts extends Component{
 
     return(
       <div className = "Parent">
-		<GameInfo
-			server_PIN = {this.props.server_PIN}
-			GameName = {this.props.GameName}
-			num_players = {this.props.num_players}
-			current_players = {this.props.current_players}
-			whoseTurn = {this.state.whoseTurn}
-		/>
-        <Scoreboard className = "scoreboard" scoreboard = {this.state.scoreboard}/>
+        <GameInfo
+    						server_PIN = {this.props.server_PIN}
+    						GameName = {this.props.GameName}
+    						num_players = {this.props.num_players}
+    						current_players = {this.props.current_players}
+    						whoseTurn = {this.state.whoseTurn}
+    					/>
+    		<Scoreboard
+    						GameName = {this.props.GameName}
+    						whoseTurn = {this.state.whoseTurn}
+    						player_index = {this.state.player_index}
+    						scoreboard = {this.state.scoreboard}
+    					/>
         <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				<div className = "hand">
 					{listHand}
@@ -338,10 +361,10 @@ class Hearts extends Component{
           {listPlayedCards}
         </div>
         <div>
-          <button className = "button" disabled = {this.state.num_tricks !== -1}
+          <button className = "button" hidden = {this.state.passed}
           onClick = {this.handlePassCards}
           >Pass Cards</button>
-          <button className = "button" disabled = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
+          <button className = "button" hidden = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
           <button className = "button" hidden = {!this.state.votenext} onClick = {this.handleVoteNextGame}>Start next game!</button>
         </div>
         <div className = "statusbox">

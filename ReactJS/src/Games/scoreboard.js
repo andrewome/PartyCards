@@ -4,10 +4,16 @@ import './Games.css';
 class Scoreboard extends Component {
 	render() {
 		const Scores = this.props.scoreboard;
-		const ListScores = Scores.map((d) => <p>{d.name} score: {d.score}</p>);
+		var ListScores;
+		if(this.props.GameName === "Hearts"){
+			ListScores = Scores.map((d) => <p>{d.name} score: {d.score} ({d.rdscore})</p>);
+		}
+		else{
+			ListScores = Scores.map((d) => <p>{d.name} score: {d.score}</p>);
+		}
 		const ListHand = Scores.map((d) => <p> {d.name} cards left: {d.score}</p>);
 		//const listItems = data.map((d) => <li key={d.name}>{d.name} Score: {d.score}</li>);
-		
+
 		if(ListScores.length) {
 			if(this.props.GameName === "Cheat" || this.props.GameName === "Taiti") {
 				return (
@@ -25,7 +31,7 @@ class Scoreboard extends Component {
 						<p>Waiting on: Player {this.props.whoseTurn + 1}</p>
 						{ListScores}
 					</div>
-				);				
+				);
 			}
 		}
 		else {
