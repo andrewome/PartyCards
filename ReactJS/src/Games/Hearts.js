@@ -315,11 +315,13 @@ class Hearts extends Component{
 
     return(
       <div className = "Parent">
-        <GameInfo
-          server_PIN = {this.state.server_PIN} GameName = "Hearts"
-          whoseTurn = {this.state.whoseTurn}
-          player_index = {this.state.player_index}
-        />
+		<GameInfo
+			server_PIN = {this.props.server_PIN}
+			GameName = {this.props.GameName}
+			num_players = {this.props.num_players}
+			current_players = {this.props.current_players}
+			whoseTurn = {this.state.whoseTurn}
+		/>
         <Scoreboard className = "scoreboard" scoreboard = {this.state.scoreboard}/>
         <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				<div className = "hand">

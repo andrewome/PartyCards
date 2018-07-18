@@ -12,6 +12,8 @@ class Scoreboard extends Component {
 			if(this.props.GameName === "Cheat" || this.props.GameName === "Taiti") {
 				return (
 					<div className = "Scoreboard">
+						<h1>Player {this.props.player_index + 1}</h1>
+						<p>Waiting on: Player {this.props.whoseTurn + 1}</p>
 						{ListHand}
 					</div>
 				);
@@ -19,6 +21,8 @@ class Scoreboard extends Component {
 			else {
 				return (
 					<div className = "Scoreboard">
+						<h1>Player {this.props.player_index + 1}</h1>
+						<p>Waiting on: Player {this.props.whoseTurn + 1}</p>
 						{ListScores}
 					</div>
 				);				

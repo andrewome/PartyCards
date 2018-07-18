@@ -14,7 +14,6 @@ class JoinServer extends Component{
 	joinServer = () => {
 		this.props.socket.emit('connectToRoom', this.state.pinNo);
 		this.props.socket.on('AuthSuccess', function(data) {
-			//console.log('Success in joining server ' + this.state.pinNo)
 			this.props.OnHandle_PinNo(this.state.pinNo);
 			this.props.OnHandle_GameType(data.gametype);
 			this.props.OnHandle_num_players(data.num_players);

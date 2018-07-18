@@ -16,27 +16,6 @@ const images = importAll(require.context('./card_images', false, /\.(png|jpe?g|s
 class Cheat extends Component {
 	constructor(props) {
 		super(props);
-		// When server emits the start game command
-		this.props.socket.on('startGame', function(data) {
-			var msg = ('The last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first.');
-			this.setState({message: msg});
-			//finding player index
-			for(var i=0;i<data.player.list.length;i++) {
-				if(data.player.list[i].id === this.props.socket.id) {
-					break;
-				}
-			}
-			//console.log(data.pinNo)
-			this.setState ({
-				turn_phase: 0,
-				server_PIN: data.pinNo,
-				whoseTurn: parseInt(data.whoseTurn),
-				player_hand: data.player.list[i].hand,
-				player_index: parseInt(i),
-				playerID: data.player.list[i].ID,
-				scoreboard: data.scoreboard,
-			});
-		}.bind(this));
 
 		this.state = {
 			whoseTurn: -1,
@@ -52,11 +31,94 @@ class Cheat extends Component {
 			player_index: -1,
 			scoreboard: [],
 		}
-
+		
+		// When server emits the start game command
+		this.props.socket.on('startGame', function(data) {
+			var msg = ('The last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first.');
+			this.setState({message: msg});
+			//finding player index
+			for(var i=0;i<data.player.list.length;i++) {
+				if(data.player.list[i].id === this.props.socket.id) {
+					break;
+				}
+			}
+			
+			//emit player index for server side to take note
+			this.props.socket.emit('playerIndex', i);
+			
+			this.setState ({
+				turn_phase: 0,
+				server_PIN: data.pinNo,
+				whoseTurn: parseInt(data.whoseTurn),
+				player_hand: data.player.list[i].hand,
+				player_index: parseInt(i),
+				playerID: data.player.list[i].ID,
+				scoreboard: data.scoreboard,
+			});
+		}.bind(this));
+		
+		//upon reconnection
+		this.props.socket.on('reconnectSuccess', function(data, playerIndex) {
+			//finding player index
+			for(var i=0;i<data.player.list.length;i++) {
+				if(data.player.list[i].id === this.props.socket.id) {
+					break;
+				}
+			}
+			
+			//send reconnection message
+			var msg = ('Player ' + (playerIndex + 1) + ' has reconnected!');
+			this.setState({last_action_tb: msg});			
+			
+			//setting states for reconnected user
+			if(this.state.player_index === -1) {
+				//emit player index for server side to take note
+				this.props.socket.emit('playerIndex', i);
+				
+				this.setState ({
+					server_PIN: data.pinNo,
+					whoseTurn: parseInt(data.whoseTurn),
+					player_hand: data.player.list[i].hand,
+					player_index: parseInt(i),
+					playerID: data.player.list[i].ID,
+					scoreboard: data.scoreboard,
+					declared_cards: data.declared_cards,
+				});
+				
+				if(data.turn_phase === 0) {
+					this.setState ({turn_phase: 0});
+					
+					//if it's not the user's turn, tell the rest to choose whether he was cheating or not
+					if(this.state.player_index !== data.whoseTurn) {
+						msg = 'Player ' + (data.whoseTurn + 1) + ' has made his move! Decide whether or not he is cheating.';
+						this.setState({message: msg});
+					}
+				}
+				else {
+					this.setState ({turn_phase: 1});
+					
+					//if it's the user's turn, tell him it is his turn
+					if(this.state.player_index === data.whoseTurn) {
+						msg = 'It is now your turn!';
+						this.setState({message: msg});
+					}
+					else {
+						msg = 'Waiting on player ' + (data.whoseTurn + 1) + " to make a move...";
+						this.setState({message: msg});
+					}
+				}
+			}
+		}.bind(this));
+		
+		//when a player disconnects
+		this.props.socket.on('playerDisconnected', function(msg) {
+			this.setState({last_action_tb: msg});
+		}.bind(this));
+		
 		//Phase 0 actions
 		this.props.socket.on('cheatSubmitServerPhase0', function(data) {
 			//update the shared states (turn_phase, whoseTurn, discard_pile, declared_cards)
-			let msg = "Player " + (this.state.whoseTurn + 1) + " plays " + data.declared_cards.num + " cards of " + data.declared_cards.val + "(s)";
+			let msg = "Player " + (this.state.whoseTurn + 1) + " plays " + data.declared_cards.num + " cards of " + data.declared_cards.val;
 			this.setState ({
 				turn_phase: data.turn_phase,
 				Discard_pile: data.Discard_pile,
@@ -273,7 +335,7 @@ class Cheat extends Component {
 			}
 		}
 	}
-
+	
 	render() {
 		var playerhand = this.state.player_hand
 		//Sorts hand according to value
@@ -310,49 +372,103 @@ class Cheat extends Component {
 			/>);
 
 		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
+		if(parseInt(this.state.declared_cards.num) === -1 && this.state.declared_cards.val === -1) {
+			return (
+				<div className = "Parent">
+					<div className = "scoreboard">
+						<GameInfo
+							server_PIN = {this.props.server_PIN}
+							GameName = {this.props.GameName}
+							num_players = {this.props.num_players}
+							current_players = {this.props.current_players}
+							whoseTurn = {this.state.whoseTurn}
+						/>
+						
+						<Scoreboard
+							GameName = {this.props.GameName}
+							whoseTurn = {this.state.whoseTurn}
+							player_index = {this.state.player_index}
+							scoreboard = {this.state.scoreboard}
+						/>
+					</div>
 
-		return (
-			<div className = "Parent">
-				<div className = "scoreboard">
-					<GameInfo
-						server_PIN = {this.state.server_PIN}
-						GameName = "Cheat"
-						num_players = {this.props.num_players} whoseTurn = {this.state.whoseTurn}
-						player_index = {this.state.player_index}
-					/>
-					<Scoreboard
-						scoreboard = {this.state.scoreboard}
-						GameName = "Cheat"
-					/>
+					<p>Your hand:</p>
+					<div className = "hand">
+						{listHand}
+					</div>
+
+					<p>Selected cards:</p>
+					<div className = "hand">
+						{listCards}
+					</div>
+
+					<form onSubmit = {this.handleSubmit.bind(this)}>
+						<label className = "label">Choose the card you are going to play:</label>
+							<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
+								{listvaloptions}
+							</select>
+						<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
+					</form>
+					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
+					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+
+					<div className = "statusbox">
+						<p>{this.state.message}</p>
+					</div>
+
+					<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 				</div>
+			);
+		}
+		else {
+			return (
+				<div className = "Parent">
+					<div className = "scoreboard">
+						<GameInfo
+							server_PIN = {this.props.server_PIN}
+							GameName = {this.props.GameName}
+							num_players = {this.props.num_players}
+							current_players = {this.props.current_players}
+							whoseTurn = {this.state.whoseTurn}
+						/>
+						
+						<Scoreboard
+							GameName = {this.props.GameName}
+							whoseTurn = {this.state.whoseTurn}
+							player_index = {this.state.player_index}
+							scoreboard = {this.state.scoreboard}
+						/>
+					</div>
+					
+					<p>Last declared cards: {this.state.declared_cards.num} cards of {this.state.declared_cards.val}</p>
+					<p>Your hand:</p>
+					<div className = "hand">
+						{listHand}
+					</div>
 
-				<p>Your hand:</p>
-				<div className = "hand">
-					{listHand}
+					<p>Selected cards:</p>
+					<div className = "hand">
+						{listCards}
+					</div>
+
+					<form onSubmit = {this.handleSubmit.bind(this)}>
+						<label className = "label">Choose the card you are going to play:</label>
+							<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
+								{listvaloptions}
+							</select>
+						<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
+					</form>
+					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
+					<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+
+					<div className = "statusbox">
+						<p>{this.state.message}</p>
+					</div>
+
+					<h1 className = "discardpile">{this.state.last_action_tb}</h1>
 				</div>
-
-				<p>Selected cards:</p>
-				<div className = "hand">
-					{listCards}
-				</div>
-
-				<form onSubmit = {this.handleSubmit.bind(this)}>
-					<label className = "label">Choose the card you are going to play:</label>
-						<select disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} ref = "val" className = "dropdown">
-							{listvaloptions}
-						</select>
-					<input disabled = {this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} type = "submit" value = "Play cards"/>
-				</form>
-				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
-				<button disabled = {this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
-
-				<div className = "statusbox">
-					<p>{this.state.message}</p>
-				</div>
-
-				<h1 className = "discardpile">{this.state.last_action_tb}</h1>
-			</div>
-		);
+			);
+		}			
 	}
 }
 

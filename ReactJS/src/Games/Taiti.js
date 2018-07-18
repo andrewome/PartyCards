@@ -41,8 +41,10 @@ class Taiti extends Component {
 					break;
 				}
 			}
+			
+			this.props.socket.emit('playerIndex', i);
+			
 			this.setState ({
-				turn_phase: 0,
 				server_PIN: data.pinNo,
 				whoseTurn: parseInt(data.whoseTurn),
 				player_hand: data.player.list[i].hand,
@@ -51,7 +53,53 @@ class Taiti extends Component {
 				scoreboard: data.scoreboard,
 			});
 		}.bind(this));
-
+	
+		//upon reconnection
+		this.props.socket.on('reconnectSuccess', function(data, playerIndex) {
+			//finding player index
+			for(var i=0;i<data.player.list.length;i++) {
+				if(data.player.list[i].id === this.props.socket.id) {
+					break;
+				}
+			}
+			
+			//send reconnection message
+			var msg = ('Player ' + (playerIndex + 1) + ' has reconnected!');
+			this.setState({last_action_tb: msg});			
+			
+			//setting states for disconnected user
+			if(this.state.player_index === -1) {
+							
+				//emit player index for server side to take note
+				this.props.socket.emit('playerIndex', i);
+				
+				this.setState ({
+					server_PIN: data.pinNo,
+					whoseTurn: parseInt(data.whoseTurn),
+					player_hand: data.player.list[i].hand,
+					player_index: parseInt(i),
+					playerID: data.player.list[i].ID,
+					scoreboard: data.scoreboard,
+					last_played_cards: data.last_played_cards,
+				});
+				
+				//if it's the user's turn, tell him it is his turn
+				if(this.state.player_index === data.whoseTurn) {
+					msg = 'It is now your turn!';
+					this.setState({message: msg});
+				}
+				else {
+					msg = 'Waiting on player ' + (data.whoseTurn + 1) + " to make a move...";
+					this.setState({message: msg});
+				}
+			}			
+		}.bind(this));
+		
+		//when a player disconnects
+		this.props.socket.on('playerDisconnected', function(msg) {
+			this.setState({last_action_tb: msg});
+		}.bind(this));
+		
 		//Receiving data from server
 		this.props.socket.on('taitiSubmitServer', function (data, msg) {
 			this.setState ({
@@ -682,15 +730,17 @@ class Taiti extends Component {
 			<div className = "Parent">
 				<div>
 					<GameInfo
-						server_PIN = {this.state.server_PIN}
-						GameName = "Taiti"
+						server_PIN = {this.props.server_PIN}
+						GameName = {this.props.GameName}
 						num_players = {this.props.num_players}
+						current_players = {this.props.current_players}
 						whoseTurn = {this.state.whoseTurn}
-						player_index = {this.state.player_index}
 					/>
 					<Scoreboard
+						GameName = {this.props.GameName}
+						whoseTurn = {this.state.whoseTurn}
+						player_index = {this.state.player_index}
 						scoreboard = {this.state.scoreboard}
-						GameName = "Taiti"
 					/>
 				</div>
 				<p>Last Played Cards:</p>

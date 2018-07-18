@@ -61,6 +61,7 @@ class Body extends Component {
 				</div>
 			);
 		}
+		
 		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created){
 			if(this.state.Game === "Cheat"){
@@ -102,6 +103,7 @@ class Body extends Component {
 				);
 			}
 		}
+		
 		// if create create_server is false and server_created is false, show server creation page
 		else if(this.state.create_server && !this.state.server_created ){
 			return(

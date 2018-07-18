@@ -83,7 +83,7 @@ function handremove(hand,sel_cards){
 	for(let i = 0; i< sel_cards.length;i++){
 		let index = hand.findIndex(x => x.name === sel_cards[i].name);
 		if(index != -1){
-			hand.splice(index,1);
+			hand.splice(index, 1);
 		}
 	}
 	return hand;
@@ -107,13 +107,25 @@ io.on('connection', function(socket) {
 	console.log(socket.id + " has made socket connection to server");
 	connected_ids.push(socket.id);
 	printConnectedIDs();
-
+	
+	//add socket indentification
+	socket.PIN = "none";
+	
 	// When disconnected, output message to server side console, and remove from list of connected clients
 	// check whether or not the room that this socket.id was in is empty. If empty, remove from game initiations
 	socket.on('disconnect', function() {
 		console.log(socket.id + " has disconnected from the server");
 		delete_id(socket.id);
-		//printConnectedIDs();
+		
+		//if someone disconnects, and there is a PIN attached to his socket, means he has left an ongoing game. free up the game on that instance
+		if(socket.PIN !== "none") {
+			var gameInstanceIndex = findGameInstance(socket.PIN);
+			gameInstances[gameInstanceIndex].current_players--;
+			gameInstances[gameInstanceIndex].disconnected_index.push(socket.player_index);
+			io.sockets.in(socket.PIN).emit('numPlayers', gameInstances[gameInstanceIndex].current_players);
+			let msg = "Player " + (socket.player_index + 1) + " has disconnected!";
+			io.sockets.in(socket.PIN).emit('playerDisconnected', msg);
+		}
 	});
 
 	//initial check if generated game pin is unique
@@ -121,7 +133,7 @@ io.on('connection', function(socket) {
 		var gamePIN = generateGamePIN(), isTaken = false;
 		var i, l = PINNumList.length;
 		for(i=0;i<l;i++) {
-			if(PINNumList[i].pinNo == gamePIN) {
+			if(PINNumList[i] == gamePIN) {
 				isTaken = true;
 				break;
 			}
@@ -131,14 +143,14 @@ io.on('connection', function(socket) {
 			while(isTaken) {
 				gamePIN = generateGamePIN();
 				for(i=0;i<l;i++) {
-					if(PINNumList[i].pinNo == gamePIN) {
+					if(PINNumList[i] == gamePIN) {
 						continue;
 					}
 				}
 				isTaken = false;
 			}
 		}
-		PINNumList.push({pinNo: gamePIN, current_players: 0});
+		PINNumList.push(gamePIN);
 		socket.emit('receiveGamePin', gamePIN);
 	});
 
@@ -147,11 +159,13 @@ io.on('connection', function(socket) {
 		//randomly generate which player will start first
 		var whoseTurn = Math.floor((Math.random()*100) + 1)%data.num_players;
 		var instance = {
+			started: false,
 			scoreboard: [],
 			whoseTurn: whoseTurn,
 			pinNo: data.pinNo,
 			gametype: data.gameType,
 			num_players: data.num_players,
+			current_players: 0,
 			deck: new Deck(),
 			player: new player(data.num_players),
 			Discard_pile: [],
@@ -159,6 +173,7 @@ io.on('connection', function(socket) {
 			last_played_cards: [],
 			turn_phase: 0,
 			lastPersonPlayed: -1,
+			disconnected_index: [],
 		};
 		gameInstances.push(instance);
 		console.log(socket.id + " has created a new room: " + data.pinNo);
@@ -170,7 +185,7 @@ io.on('connection', function(socket) {
 		//check if PIN number exists
 		var i, l = PINNumList.length, pinExists = false;
 		for(i=0;i<l;i++) {
-			if(PINNumList[i].pinNo == pin) {
+			if(PINNumList[i] == pin) {
 				pinExists = true;
 				break;
 			}
@@ -178,67 +193,102 @@ io.on('connection', function(socket) {
 
 		if(pinExists) {
 			var PinNumListIndex = findPINNumList(pin);
-			var gameInstancesIndex = findGameInstance(pin);
+			var gameInstanceIndex = findGameInstance(pin);
 			var isFull = false, i, j;
 
 			//check whether server is full first, if full reject connection
-			if(PINNumList[PinNumListIndex].current_players >= gameInstances[gameInstancesIndex].num_players) {
+			if(gameInstances[gameInstanceIndex].current_players >= gameInstances[gameInstanceIndex].num_players) {
 				//reject this connection
 				socket.emit('AuthFail', 'server is currently full');
 				isFull = true;
 			}
-
+			
 			if(!isFull) {
-				socket.emit('AuthSuccess',gameInstances[gameInstancesIndex]);
-				//add socket ID into player ID
-				gameInstances[gameInstancesIndex].player.list[PINNumList[PinNumListIndex].current_players].id = socket.id;
-				//increment current number of players within the server
-				PINNumList[PinNumListIndex].current_players++;
-				socket.join(pin);
-				console.log(socket.id + " has joined room " + pin + ", number of players inside: " + PINNumList[PinNumListIndex].current_players);
-
-				//check if game server is full, if full, start game
-				if(PINNumList[PinNumListIndex].current_players == gameInstances[gameInstancesIndex].num_players) {
-
-					// initialising scoreboard
-					for(let i = 0;i<gameInstances[gameInstancesIndex].num_players;i++){
-						gameInstances[gameInstancesIndex].scoreboard.push({name:gameInstances[gameInstancesIndex].player.list[i].name, score: gameInstances[gameInstancesIndex].player.list[i].score})
-					}
-
-					// initialising the deck
-					gameInstances[gameInstancesIndex].deck.generate_deck();
-					gameInstances[gameInstancesIndex].deck.shuffle();
-
-					// dealing out the cards
-					while(gameInstances[gameInstancesIndex].deck.size() != 0) {
-						let card = gameInstances[gameInstancesIndex].deck.deal();
-						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
-					}
-					gameInstances[gameInstancesIndex].player.resetPassVotes();
+				//if game hasn't started yet
+				if(gameInstances[gameInstanceIndex].started === false) {
+					//add socket ID into player ID
+					gameInstances[gameInstanceIndex].player.list[gameInstances[gameInstanceIndex].current_players].id = socket.id;
 					
-					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
-					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
-						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
-							for(j=0;j<gameInstances[gameInstancesIndex].player.list[i].hand.length;j++) {
-								if(gameInstances[gameInstancesIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
-									gameInstances[gameInstancesIndex].whoseTurn = i;
-									break;
+					//increment current number of players within the server
+					gameInstances[gameInstanceIndex].current_players++;
+					socket.join(pin);
+					console.log(socket.id + " has joined room " + pin + ", number of players inside: " + gameInstances[gameInstanceIndex].current_players);
+					
+					//emit game instance to client
+					socket.emit('AuthSuccess', gameInstances[gameInstanceIndex]);	
+					
+					//save PIN number to said ID
+					socket.PIN = pin;
+					
+					//emit current number of players in server
+					io.sockets.in(pin).emit('numPlayers', gameInstances[gameInstanceIndex].current_players);
+					
+					//check if game server is full, if full, start game
+					if(gameInstances[gameInstanceIndex].current_players == gameInstances[gameInstanceIndex].num_players) {
+
+						// initialising scoreboard
+						for(let i = 0;i<gameInstances[gameInstanceIndex].num_players;i++){
+							gameInstances[gameInstanceIndex].scoreboard.push({name:gameInstances[gameInstanceIndex].player.list[i].name, score: gameInstances[gameInstanceIndex].player.list[i].score})
+						}
+
+						// initialising the deck
+						gameInstances[gameInstanceIndex].deck.generate_deck();
+						gameInstances[gameInstanceIndex].deck.shuffle();
+
+						// dealing out the cards
+						while(gameInstances[gameInstanceIndex].deck.size() != 0) {
+							let card = gameInstances[gameInstanceIndex].deck.deal();
+							gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
+						}
+						gameInstances[gameInstanceIndex].player.resetPassVotes();
+						
+						//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
+						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf()) {
+							for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+								for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
+									if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
+										gameInstances[gameInstanceIndex].whoseTurn = i;
+										break;
+									}
 								}
 							}
 						}
-					}
-					
-					//if game is cheat/taiti, the scores are the number of cards in ones hand
-					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf() || gameInstances[gameInstancesIndex].gametype.valueOf() === "Cheat".valueOf()) {
-						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
-							gameInstances[gameInstancesIndex].scoreboard[i].score = gameInstances[gameInstancesIndex].player.list[i].hand.length;
+						
+						//if game is cheat/taiti, the scores are the number of cards in ones hand
+						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf() || gameInstances[gameInstanceIndex].gametype.valueOf() === "Cheat".valueOf()) {
+							for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+								gameInstances[gameInstanceIndex].scoreboard[i].score = gameInstances[gameInstanceIndex].player.list[i].hand.length;
+							}
 						}
+						
+						gameInstances[gameInstanceIndex].started = true;
+						io.sockets.in(pin).emit('startGame', gameInstances[gameInstanceIndex]);
+						console.log("Server " + gameInstances[gameInstanceIndex].pinNo + " has started their game!");
 					}
-					
-					io.sockets.in(pin).emit('startGame', gameInstances[gameInstancesIndex]);
-					console.log("Server " + gameInstances[gameInstancesIndex].pinNo + " has started their game!");
 				}
-
+				
+				//someone is reconnecting into the server
+				else {	
+					var playerIndex = gameInstances[gameInstanceIndex].disconnected_index.pop();
+					
+					//add socket ID into player ID
+					gameInstances[gameInstanceIndex].player.list[playerIndex].id = socket.id;
+					
+					//increment current number of players within the server
+					gameInstances[gameInstanceIndex].current_players++;
+					socket.join(pin);
+					console.log(socket.id + " has joined room " + pin + ", number of players inside: " + gameInstances[gameInstanceIndex].current_players);
+					
+					//emit game instance to client
+					socket.emit('AuthSuccess', gameInstances[gameInstanceIndex]);
+					io.sockets.in(pin).emit('reconnectSuccess', gameInstances[gameInstanceIndex], playerIndex);
+					
+					//save PIN number to said ID
+					socket.PIN = pin;
+					
+					//emit current number of players in server
+					io.sockets.in(pin).emit('numPlayers', gameInstances[gameInstanceIndex].current_players);
+				}
 			}
 		}
 		else {
@@ -246,7 +296,10 @@ io.on('connection', function(socket) {
 		}
 	});
 
-
+	socket.on('playerIndex', function(i) {
+		socket.player_index = i;
+	});
+	
 /*-----------------------
 |						 |
 |						 |
@@ -307,7 +360,7 @@ io.on('connection', function(socket) {
 				}
 				
 				//change value of cards left in player's hand
-				gameInstances[gameInstanceIndex].scoreboard[data.player_index].score = gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;
+				gameInstances[gameInstanceIndex].scoreboard[data.whoseTurn].score = gameInstances[gameInstanceIndex].player.list[data.whoseTurn].hand.length;
 			}
 			// else give discard pile to accusor (player_index)
 			else {
@@ -334,11 +387,9 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].declared_cards.val = -1;
 			if(cheated) {
 				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msgCheated);
-				//console.log(gameInstances[gameInstanceIndex]);
 			}
 			else {
 				io.sockets.in(data.pinNo).emit('cheatSubmitServerPhase1', gameInstances[gameInstanceIndex], msgNotCheated);
-				//console.log(gameInstances[gameInstanceIndex]);
 			}
 		}
 		// else add to the counter
@@ -350,9 +401,11 @@ io.on('connection', function(socket) {
 					counter++;
 				}
 			}
-			//if it equals, send message to room for next turn, and set phase back to 0 + next turn + reset votes
+			//if it equals, send message to room for next turn, and set phase back to 0 + next turn + reset votes 
 			if(counter == gameInstances[gameInstanceIndex].num_players - 1) {
 				var msg = "Everyone voted that player " + (data.whoseTurn + 1) + " is not cheating! Moving on to the next round!";
+				//change value of cards left in player's hand
+				gameInstances[gameInstanceIndex].scoreboard[data.player_index].score = gameInstances[gameInstanceIndex].player.list[data.player_index].hand.length;
 				gameInstances[gameInstanceIndex].whoseTurn = (gameInstances[gameInstanceIndex].whoseTurn + 1)%gameInstances[gameInstanceIndex].num_players;
 				gameInstances[gameInstanceIndex].turn_phase = 0;
 				gameInstances[gameInstanceIndex].player.resetPassVotes();
