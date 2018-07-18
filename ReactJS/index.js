@@ -214,7 +214,8 @@ io.on('connection', function(socket) {
 						let card = gameInstances[gameInstancesIndex].deck.deal();
 						gameInstances[gameInstancesIndex].player.list[(gameInstances[gameInstancesIndex].deck.size() + 1)%gameInstances[gameInstancesIndex].num_players].hand.push(card);
 					}
-
+					gameInstances[gameInstancesIndex].player.resetPassVotes();
+					
 					//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
 					if(gameInstances[gameInstancesIndex].gametype.valueOf() === "Taiti".valueOf()) {
 						for(i=0;i<gameInstances[gameInstancesIndex].num_players;i++) {
@@ -452,14 +453,18 @@ io.on('connection', function(socket) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
+		var dir = "";
+		
 		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
 		gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
 		//Passing the Cards
 		if(data.passwhere === 1){
+			dir = "left";
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+1)%4].hand.concat(data.selected_cards);
 		}
 		//Pass right
 		else if(data.passwhere === 2){
+			dir = "right";
 			let index = data.player_index-1;
 			if(index < 0){
 				index += 4;
@@ -467,13 +472,14 @@ io.on('connection', function(socket) {
 			gameInstances[gameInstanceIndex].player.list[(index)%4].hand = gameInstances[gameInstanceIndex].player.list[(index)%4].hand.concat(data.selected_cards);
 		}
 		//Pass opposite
+		dir = "opposite";
 		else if(data.passwhere === 3){
 			gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand = gameInstances[gameInstanceIndex].player.list[(data.player_index+2)%4].hand.concat(data.selected_cards);
 
 		}
 		//Checks if all the players have chosen the three cards to pass
 		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-			if(gameInstances[gameInstanceIndex].player.list[i].passVote === undefined) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === -1) {
 				counter++;
 				waitplayers.push(gameInstances[gameInstanceIndex].player.list[i].name + ' ');
 			}
