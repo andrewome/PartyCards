@@ -7,12 +7,13 @@ import Init from './Init';
 import Cheat from './Games/Cheat';
 import Hearts from './Games/Hearts';
 import Taiti from './Games/Taiti';
+import Bridge from './Games/Bridge';
 import io from 'socket.io-client';
 
 class Body extends Component {
 	constructor(props) {
 		super(props);
-		
+
 		// Make client connection to server
 		// Don't forget to change localhost to your actual URL!
 		this.socket = io("localhost:1521");
@@ -25,11 +26,11 @@ class Body extends Component {
 			server_created: false,
 			Game: "N/A",
 		}
-		
+
 		this.socket.on('numPlayers', function(value) {
 			this.setState({current_players: value});
 		}.bind(this));
-		
+
 		this.handlecreate_server = (value) => {
 			this.setState({create_server: value});
 		}
@@ -54,15 +55,15 @@ class Body extends Component {
 			this.setState({server_PIN: value});
 		}
 	}
-	
+
 	render() {
-		
+
 		// if create_server & join_server is false, show the main page
 		if(!this.state.create_server && !this.state.join_server){
 			return (
 				<div>
 					<Title />
-					<Init 
+					<Init
 						OnHandle_create_server = {this.handlecreate_server}
 						OnHandle_join_server = {this.handlejoin_server}
 					    OnHandleGetPin = {this.handleGetPin}
@@ -71,7 +72,7 @@ class Body extends Component {
 				</div>
 			);
 		}
-		
+
 		// if create_server is true and server_created is true, display game page
 		else if(this.state.create_server && this.state.server_created) {
 			if(this.state.Game === "Cheat"){
@@ -90,7 +91,7 @@ class Body extends Component {
 			else if(this.state.Game === "Taiti") {
 				return (
 					<div>
-						<Taiti 
+						<Taiti
 							GameName = {this.state.Game}
 							num_players = {this.state.num_players}
 							server_PIN = {this.state.server_PIN}
@@ -103,7 +104,7 @@ class Body extends Component {
 			else if(this.state.Game === "Hearts") {
 				return (
 					<div>
-						<Hearts 
+						<Hearts
 							GameName = {this.state.Game}
 							num_players = {this.state.num_players}
 							server_PIN = {this.state.server_PIN}
@@ -113,11 +114,23 @@ class Body extends Component {
 					</div>
 				);
 			}
-			//else if(this.state.Game == "Bridge") {}
-			else {
+		else if(this.state.Game == "Bridge") {
+			return(
+				<div>
+					<Bridge
+						GameName = {this.state.Game}
+						num_players = {this.state.num_players}
+						server_PIN = {this.state.server_PIN}
+						socket = {this.socket}
+						current_players = {this.state.current_players}
+					/>
+				</div>
+			);
+		}
+			else{
 				return(
 					<div className = "App">
-						Work in progress. Only Cheat is available at this point in time. Sorry!
+						Work in progress... Sorry!
 					</div>
 				);
 			}
@@ -127,7 +140,7 @@ class Body extends Component {
 			return(
 				<div>
 					<Title />
-						<Svrcreate 
+						<Svrcreate
 							OnHandle_server_created = {this.handleserver_created}
 							OnHandle_selectGame = {this.handleselectGame}
 							OnHandle_num_players = {this.handlenum_players}
@@ -136,13 +149,13 @@ class Body extends Component {
 						/>
 				</div>
 			)
-		}			
-		// if join_server is true, show initialisation page			
+		}
+		// if join_server is true, show initialisation page
 		else if(this.state.join_server) {
 			return (
 				<div className="Init">
 					<Title/>
-						<JoinServer 
+						<JoinServer
 							socket = {this.socket}
 							server_PIN = {this.state.server_PIN}
 							OnHandleGetPin = {this.handleGetPin}
