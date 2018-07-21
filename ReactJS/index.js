@@ -860,9 +860,29 @@ io.on('connection', function(socket) {
 
 		//Checks if all the players have played a card
 		else if(playedcards.length === 4){
-			var winningplayer = -1,max = -1, points = 0,card_index = -1;
+			var winningplayer = -1,max = -1, points = 0,card_index = -1,winningsuit = "",winningset = data.difficulty +7-1
 			for(let j = 0; j<4;j++){
-				if(playedcards[j].card.suit === data.played_suit && playedcards[j].card.value.num > max){
+
+				//Checks whether player played a trump suit
+				if(playedcards[j].card.suit === data.trump_suit){
+					if(winningsuit !== data.trump_suit){
+						winningsuit = playedcards[j].card.suit;
+						max = playedcards[j].card.value.num;
+						winningplayer = playedcards[j].player_index;
+						card_index = j;
+						continue;
+					}
+					else if(playedcards[j].card.value.num > max){
+						winningsuit = playedcards[j].card.suit;
+						max = playedcards[j].card.value.num;
+						winningplayer = playedcards[j].player_index;
+						card_index = j;
+						continue;
+					}
+				}
+				//If winning suit is trump_suit, then the below code doesn't matter because only trump suits can win this trick
+				if(winningsuit !== data.trump_suit && playedcards[j].card.suit === data.played_suit && playedcards[j].card.value.num > max){
+					winningsuit = playedcards[j].card.suit;
 					max = playedcards[j].card.value.num;
 					winningplayer = playedcards[j].player_index;
 					card_index = j;
@@ -870,15 +890,48 @@ io.on('connection', function(socket) {
 			}
 			gameInstances[gameInstanceIndex].scoreboard[winningplayer].score++;
 			var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
-			msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
-			io.sockets.in(data.pinNo).emit('BridgeNextTrick', {
-				message: msg,
-				whoseTurn: winningplayer,
-				scoreboard: scoreboard,
-				played_cards: playedcards,
-				break_trump: data.break_trump,
-				num_tricks: data.num_tricks + 1,
-			});
+
+			//Need determine indexes of losing bidders...
+			var losingbidders = [];
+			for(let i = 0;i<4;i++){
+				if(i !== data.winbid_player && i !== data.partner_index){
+					losingbidders.push(i);
+				}
+			}
+			//Check if game has ended
+			if((gameInstances[gameInstanceIndex].scoreboard[data.winbid_player].score + gameInstances[gameInstanceIndex].scoreboard[data.partner_index].score) === winningset){
+				msg = "The bid winners Players " + (data.winbid_player+1) + " & " + (data.partner_index+1) + " has won the game! Thanks for playing!"
+				io.sockets.in(data.pinNo).emit('BridgeEnd', {
+					message: msg,
+					scoreboard: scoreboard,
+					played_cards: playedcards,
+					break_trump: data.break_trump,
+					num_tricks: data.num_tricks + 1,
+				});
+				return;
+			}
+			else if(((gameInstances[gameInstanceIndex].scoreboard[losingbidders[0]].score + gameInstances[gameInstanceIndex].scoreboard[losingbidders[1]].score)) === (14-winningset)){
+				msg = "The bid losers Players " + (losingbidders[0]+1) + " & " + (losingbidders[1]+1) + " has won the game! Thanks for playing!"
+				io.sockets.in(data.pinNo).emit('BridgeEnd', {
+					message: msg,
+					scoreboard: scoreboard,
+					played_cards: playedcards,
+					break_trump: data.break_trump,
+					num_tricks: data.num_tricks + 1,
+				});
+
+			}
+			else{
+				msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
+				io.sockets.in(data.pinNo).emit('BridgeNextTrick', {
+					message: msg,
+					whoseTurn: winningplayer,
+					scoreboard: scoreboard,
+					played_cards: playedcards,
+					break_trump: data.break_trump,
+					num_tricks: data.num_tricks + 1,
+				});
+			}
 			return;
 		}
 		else{
@@ -892,7 +945,26 @@ io.on('connection', function(socket) {
 			});
 			return;
 		}
-	})
+	});
+	socket.on('ChoosePartner', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var partnerindex = -1;
+
+		//Check who is the partner
+		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++){
+			let index = gameInstances[gameInstanceIndex].player.list[i].hand.findIndex(d => d.name === data.card_name);
+			if(index !== -1){
+				partnerindex = i;
+				break;
+			}
+		}
+
+		io.sockets.in(data.pinNo).emit('PartnerChosen',{
+			partner_index: partnerindex,
+			player_index: data.player_index,
+			card_name: data.card_name,
+		})
+	});
 });
 
 /* TODO:

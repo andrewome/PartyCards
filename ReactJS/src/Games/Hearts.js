@@ -116,6 +116,7 @@ class Hearts extends Component{
         selected_cards:[],
         break_hearts: data.break_hearts,
         num_tricks: data.num_tricks,
+        played_suit: "",
       })
 		}.bind(this));
 
@@ -230,8 +231,8 @@ class Hearts extends Component{
         else{
           breakhearts = 1;
         }
+        this.setState({played_suit: this.state.selected_cards[0].suit })
       }
-      this.setState({played_suit: this.state.selected_cards[0].suit })
       this.props.socket.emit("PlayCard", {
         played_card: this.state.selected_cards[0],
         whoseTurn: this.state.whoseTurn,

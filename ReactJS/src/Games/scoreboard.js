@@ -38,7 +38,7 @@ class Scoreboard extends Component {
 					<div className = "Scoreboard">
 						<h1>Player {this.props.player_index + 1}</h1>
 						<p>Waiting on: Player {this.props.whoseTurn + 1}</p>
-						<p>Bid: {this.props.winning_diff} {this.props.winning_trump.name} ({this.props.winning_player})</p>
+						<p>Bid: {this.props.winning_diff} {this.props.winning_trump.name} (Player {this.props.winning_player+1}) {this.props.sets}</p>
 						{ListScores}
 					</div>
 				);
