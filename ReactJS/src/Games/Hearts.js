@@ -203,6 +203,7 @@ class Hearts extends Component{
     var breakhearts = this.state.break_hearts;
     if(this.state.selected_cards.length < 1){
       this.setState({message: "You need to pick a card to play!"});
+      return;
     }
     //Checks whether player has to play 2 of Clubs to start the game
     if(this.state.starting && this.state.selected_cards[0].name !== "2 of Clubs"){

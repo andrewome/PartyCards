@@ -254,7 +254,7 @@ io.on('connection', function(socket) {
 									}
 								}
 							}
-						}						
+						}
 
 						// dealing out the cards
 						// for taiti, if number of players = 3, means there'll be an excess card. This card goes to the holder of the 3 of diamonds
@@ -266,14 +266,16 @@ io.on('connection', function(socket) {
 								count++;
 							}
 							let card = gameInstances[gameInstanceIndex].deck.deal();
-							gameInstances[gameInstanceIndex].player.list[gameInstances[gameInstanceIndex].whoseTurn].hand.push(card);			
+							gameInstances[gameInstanceIndex].player.list[gameInstances[gameInstanceIndex].whoseTurn].hand.push(card);
 						}
-						else {					
+						else {
 							while(gameInstances[gameInstanceIndex].deck.size() !== 0) {
 								let card = gameInstances[gameInstanceIndex].deck.deal();
 								gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
 							}
 						}
+
+						//Initialise values of PassVotes
 						gameInstances[gameInstanceIndex].player.resetPassVotes();
 
 						//if game is cheat/taiti, the scores are the number of cards in ones hand
@@ -766,10 +768,131 @@ io.on('connection', function(socket) {
 		//Not everybody has selected their cards. Prints out waiting message...
 		else{
 			msg = "Waiting on player(s):" + waitplayers.join() + "to vote next round..."
-			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
+
+
+		}
+	});
+
+	/*-----------------------
+	|						 |
+	|						 |
+	|'Bridge' functions here |
+	|						 |
+	|						 |
+	------------------------*/
+
+	socket.on('Bid',function(data){
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var whoseTurn = (data.player_index + 1)%4;
+
+		//Reset pass votes because a player has bid
+		gameInstances[gameInstanceIndex].player.resetPassVotes();
+
+		io.sockets.in(data.pinNo).emit('BidUpdate',
+			{
+				player_index: data.player_index,
+				trump: data.trump,
+				difficulty: data.difficulty,
+				whoseTurn: whoseTurn,
+			}
+		);
+		return;
+	});
+	socket.on('Pass',function(data){
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var whoseTurn = (data.player_index + 1)%4;
+		var counter = 0;
+		var winningplayer = -1;
+		gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
+
+		//Check who has passed
+		for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+			if(gameInstances[gameInstanceIndex].player.list[i].passVote === 1) {
+				counter++;
+			}
+			else{
+				winningplayer = i;
+			}
+		}
+
+		//Current bid has won
+		if(counter === 3){
+			io.sockets.in(data.pinNo).emit('BidWon',
+				{
+					player_index: data.player_index,
+					winning_player: winningplayer,
+				});
+				return;
+		}
+		else{
+			io.sockets.in(data.pinNo).emit('PassUpdate',
+				{
+					player_index: data.player_index,
+					whoseTurn: whoseTurn,
+				});
 			return;
 		}
 	});
+	socket.on('BridgePlayCard', function(data) {
+		var gameInstanceIndex = findGameInstance(data.pinNo);
+		var counter = 0;
+		var whoseTurn = (data.whoseTurn + 1)%4;
+		var playedcards = data.played_cards;
+		var msg = "";
+
+		if(playedcards.length === 4){
+			playedcards = [];
+		}
+		playedcards.push({card:data.played_card, player_index:(data.player_index)});
+		console.log("Bridge")
+		//Checks if starting a trick
+		if(playedcards.length === 1){
+			msg = "Player " + (data.player_index+1) + " starts the trick with " + data.played_card.name + "! Waiting for Player " + (whoseTurn+1) + "...";
+			io.sockets.in(data.pinNo).emit('BridgeStartTrick', {
+				message: msg,
+				whoseTurn: whoseTurn,
+				played_suit: data.played_card.suit,
+				played_cards: playedcards,
+				break_trump: data.break_trump,
+			});
+			return;
+		}
+
+		//Checks if all the players have played a card
+		else if(playedcards.length === 4){
+			var winningplayer = -1,max = -1, points = 0,card_index = -1;
+			for(let j = 0; j<4;j++){
+				if(playedcards[j].card.suit === data.played_suit && playedcards[j].card.value.num > max){
+					max = playedcards[j].card.value.num;
+					winningplayer = playedcards[j].player_index;
+					card_index = j;
+				}
+			}
+			gameInstances[gameInstanceIndex].scoreboard[winningplayer].score++;
+			var scoreboard = gameInstances[gameInstanceIndex].scoreboard;
+			msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
+			io.sockets.in(data.pinNo).emit('BridgeNextTrick', {
+				message: msg,
+				whoseTurn: winningplayer,
+				scoreboard: scoreboard,
+				played_cards: playedcards,
+				break_trump: data.break_trump,
+				num_tricks: data.num_tricks + 1,
+			});
+			return;
+		}
+		else{
+			msg = "Player " + (data.player_index+1) + " played " + data.played_card.name + ". " + "Waiting for Player " + (whoseTurn+1) + "...";
+			io.sockets.in(data.pinNo).emit('BridgeNextTurn', {
+				played_cards: playedcards,
+				message: msg,
+				whoseTurn: whoseTurn,
+				played_suit: data.played_suit,
+				break_trump: data.break_trump,
+			});
+			return;
+		}
+	})
 });
 
 /* TODO:

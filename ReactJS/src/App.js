@@ -66,7 +66,7 @@ class Body extends Component {
 					<Init
 						OnHandle_create_server = {this.handlecreate_server}
 						OnHandle_join_server = {this.handlejoin_server}
-					    OnHandleGetPin = {this.handleGetPin}
+					  OnHandleGetPin = {this.handleGetPin}
 						socket = {this.socket}
 					/>
 				</div>
@@ -116,7 +116,7 @@ class Body extends Component {
 			}
 		else if(this.state.Game == "Bridge") {
 			return(
-				<div>
+				<div className = "Game">
 					<Bridge
 						GameName = {this.state.Game}
 						num_players = {this.state.num_players}

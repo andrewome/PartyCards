@@ -28,11 +28,18 @@ class Bridge extends Component{
       player_hand: [],
       player_index: -1,
       played_suit: "",
-      break_hearts: 0,
+      break_trump: 0,
       passed_cards: [],
       scoreboard: [],
       starting: 0,
       bidding: 0,
+      choose_partner: 0,
+      playing:0,
+      winning_player: "",
+      winning_diff: 0,
+      winning_trump: {value: '3', name: "Spades"},
+      difficulty: 1,
+      trump: 0,
     }
     this.props.socket.on('startGame', function(data) {
 			//finding player index
@@ -51,24 +58,199 @@ class Bridge extends Component{
 				playerID: data.player.list[i].ID,
         scoreboard: data.scoreboard,
         whoseTurn: data.whoseTurn,
+        bidding: 1,
 			});
       var msg = 'The last man has joined! Bidding Round begins... Player ' + (data.whoseTurn+1) + " will start the bid!";
       this.setState({message: msg});
 		}.bind(this));
+    this.props.socket.on('BidUpdate', function(data){
+      var TrumpSuit = this.ValuetoTrump(data.trump)
+      var msg = "Player " + (data.player_index + 1) + " bids " + data.difficulty + " " + TrumpSuit + "!" + " Player " + (data.whoseTurn+1) + "'s turn to bid...";
+      this.setState({
+        message: msg,
+        whoseTurn: data.whoseTurn,
+        winning_diff: data.difficulty,
+        winning_trump: {value: data.trump, name: TrumpSuit},
+        winning_player: "Player " + (data.player_index+1)
+      })
+    }.bind(this));
+
+    this.props.socket.on('PassUpdate', function(data){
+      var msg = "Player " + (data.player_index + 1) + " has passed!" + " Player " + (data.whoseTurn+1) + "'s turn to bid...";
+      this.setState({
+        message: msg,
+        whoseTurn: data.whoseTurn,
+      })
+    }.bind(this));
+    this.props.socket.on('BidWon', function(data){
+      var breaktrump = 1;
+      if(this.state.winning_trump !== "No Trump"){
+        breaktrump = 0;
+      }
+      var msg = "Player " + (data.player_index + 1) + " has passed!" + " Player " + (data.winning_player+1) + " has won the bid and has to choose a partner!";
+      this.setState({
+        message: msg,
+        whoseTurn: data.winning_player,
+        choose_partner:1,
+        bidding: 0,
+        break_trump: breaktrump,
+        difficulty: 'A',
+        trump: this.state.winning_trump.value,
+      })
+    }.bind(this));
+    this.props.socket.on('BridgeNextTurn',function(data){
+      this.setState({
+        message: data.message,
+        whoseTurn: data.whoseTurn,
+        played_cards: data.played_cards,
+        selected_cards: [],
+        break_trump: data.break_trump,
+      })
+    }.bind(this));
+    this.props.socket.on('BridgeStartTrick', function(data) {
+      this.setState({
+        message: data.message,
+        whoseTurn: data.whoseTurn,
+        played_suit: data.played_suit,
+        played_cards: data.played_cards,
+        selected_cards: [],
+        break_trump: data.break_trump,
+        show_passed: 0,
+        starting: 0,
+      })
+		}.bind(this));
+    this.props.socket.on('BridgeNextTrick', function(data) {
+      this.setState({
+        message: data.message,
+        whoseTurn: data.whoseTurn,
+        scoreboard: data.scoreboard,
+        played_cards: data.played_cards,
+        selected_cards:[],
+        break_trump: data.break_trump,
+        num_tricks: data.num_tricks,
+      })
+		}.bind(this));
   }
+  ValuetoTrump = (val) =>{
+    switch(parseInt(val)){
+      case 0:
+      return "Clubs";
+      case 1:
+      return "Diamonds";
+      case 2:
+      return "Hearts";
+      case 3:
+      return "Spades";
+      case 4:
+      return "No Trump";
+      default:
+      return "Invalid Trump value";
+    }
+  }
+  handleDiffChange = (e) =>{
+    this.setState({difficulty: e.target.value})
+  }
+  handleTrumpChange = (e) =>{
+    this.setState({trump: e.target.value})
+  }
+  handlePass = () =>{
+    this.props.socket.emit('Pass',{
+      player_index: this.state.player_index,
+      pinNo: this.state.server_PIN,
+    })
+  }
+  handlebidding = ()=>{
+    //Check whether player is bidding a lower difficulty than the current bid
+    if(this.state.difficulty < this.state.winning_diff){
+      this.setState({message: "Cannot bid a lower difficulty!"})
+      return;
+    }
+    //Check whether player is bidding a lower ranked suit at the same difficulty
+    //Not sure why cannot use === comparator here
+    if(this.state.difficulty == this.state.winning_diff){
+      if(this.state.trump <= this.state.winning_trump.value){
+        this.setState({message:"You must bid a higher ranked suit!"});
+        return;
+      }
+    }
+    this.props.socket.emit('Bid',{
+      player_index: this.state.player_index,
+      trump: this.state.trump,
+      difficulty: this.state.difficulty,
+      pinNo:this.state.server_PIN,
+    })
+  }
+  handlePlayCard = () =>{
+    /*Preliminary checks*/
+    var breaktrump = this.state.break_trump;
+    if(this.state.selected_cards.length < 1){
+      this.setState({message: "You need to pick a card to play!"});
+      return;
+    }
+    /*Preliminary checks*/
+
+    //Checks whether player is starting a trick
+    if(!(this.state.played_cards.length%4)){
+      //Trump not broken but player played Trump Suit
+      if(this.state.selected_cards[0].suit === this.state.winning_trump.name && !this.state.break_trump){
+        //Check whether player hand has full hand of Trump
+        let index = this.state.player_hand.findIndex(x => x.suit === this.state.winning_trump.name);
+        if (index !== -1){
+          this.setState({message: this.state.winning_trump.name + " is not broken yet!"})
+          return;
+        }
+        else{
+          breaktrump = 1;
+        }
+      }
+    }
+    //Checks whether suit of card selected matches with suit being played
+    if(this.state.selected_cards[0].suit !== this.state.played_suit){
+      let index = this.state.player_hand.findIndex(x => x.suit === this.state.played_suit);
+      if (index !== -1){
+        this.setState({message: "You have to play " + this.state.played_suit + "!"})
+        return;
+      }
+      else if(this.state.selected_cards[0].suit === this.state.winning_trump.name){
+        breaktrump = 1
+      }
+    }
+
+    this.setState({played_suit: this.state.selected_cards[0].suit })
+    this.props.socket.emit("BridgePlayCard", {
+      played_card: this.state.selected_cards[0],
+      whoseTurn: this.state.whoseTurn,
+      played_suit: this.state.selected_cards[0].suit,
+      player_index: this.state.player_index,
+      pinNo: this.state.server_PIN,
+      played_cards: this.state.played_cards,
+      num_tricks: this.state.num_tricks,
+      break_trump: breaktrump,
+      num_game: this.state.num_game,
+    })
+  }
+
   render(){
-    var Suits = ["Clubs", "Diamonds", "Hearts", "Spades", "No Trump"];
+    var Suits = [{value: '0', name:"Clubs"}, {value: '1', name: "Diamonds"}, {value: '2', name:"Hearts"},{value: '3', name:"Spades" },{value: '4', name: "No Trump" }];
     var Difficulty = [1,2,3,4,5,6,7];
+    var values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
     var playerhand = this.state.player_hand
-		//Sorts hand according to value
-		playerhand = Sort.bySuit(playerhand);
-		var selectedcards = this.state.selected_cards;
+    var selectedcards = this.state.selected_cards;
     var playedcards = this.state.played_cards;
+
+		//Sorts hand according to Suit
+		playerhand = Sort.bySuit(playerhand);
+    const listValues = values.map((d) => <option value = {d}> {d} </option>)
+    const listDifficulty = Difficulty.map((d) => <option value = {d}> {d} </option>)
+    const listSuits = Suits.map((d) => <option value = {d.value} > {d.name} </option>)
     const listPlayedCards = playedcards.map((d) => <img className = "scards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
     const listHand = playerhand.map((d) =>
 			<img className = "cards" src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
         let index = playerhand.findIndex(x => x.name === d.name);
+        if(this.state.bidding || this.state.choose_partner){
+          return;
+        }
         if(this.state.whoseTurn === this.state.player_index){
           if(selectedcards.length === 1){
             this.setState({message: "You can only select 1 card to play"});
@@ -109,6 +291,9 @@ class Bridge extends Component{
     						whoseTurn = {this.state.whoseTurn}
     						player_index = {this.state.player_index}
     						scoreboard = {this.state.scoreboard}
+                winning_diff = {this.state.winning_diff}
+                winning_trump = {this.state.winning_trump}
+                winning_player = {this.state.winning_player}
     					/>
         <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				<div className = "hand">
@@ -120,9 +305,31 @@ class Bridge extends Component{
           <p>Played Cards: </p>
           {listPlayedCards}
         </div>
-        <div>
-          <button className = "button" hidden = {!this.state.bidding} onClick = {this.handlePlayCard}>Bid</button>
-          <button className = "button" hidden = {this.state.bidding || (this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1)} onClick = {this.handlePlayCard}>Play Card</button>
+        <div hidden = {!this.state.bidding || (this.state.whoseTurn !== this.state.player_index)}>
+          <label> Difficulty: </label>
+          <select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
+            {listDifficulty}
+          </select>
+          <label> Trump: </label>
+          <select value = {this.state.trump.name} onChange ={this.handleTrumpChange}>
+            {listSuits}
+          </select>
+          <button className = "button" onClick = {this.handlebidding}>Bid</button>
+          <button className = "button" onClick = {this.handlePass}>Pass</button>
+        </div>
+        <div hidden = {!this.state.playing || (this.state.whoseTurn !== this.state.player_index)}>
+          <button className = "button" onClick = {this.handlePlayCard}>Play Card</button>
+        </div>
+        <div hidden = {!this.state.choose_partner || (this.state.whoseTurn !== this.state.player_index)}>
+          <label>Value: </label>
+          <select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
+            {listValues}
+          </select>
+          <label>Suit: </label>
+          <select value = {this.state.trump} onChange ={this.handleTrumpChange}>
+            {listSuits}
+          </select>
+          <button className = "button" onClick = {this.handlePlayCard}>Choose Partner</button>
         </div>
         <div className = "statusbox">
 					<p>{this.state.message}</p>
