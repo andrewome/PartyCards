@@ -41,6 +41,7 @@ class Bridge extends Component{
       difficulty: 1,
       trump: 0,
       partner_index: -1,
+      partner_card: "",
     }
     this.props.socket.on('startGame', function(data) {
 			//finding player index
@@ -134,7 +135,7 @@ class Bridge extends Component{
         breaktrump = 0;
       }
       if(data.partner_index === this.state.player_index){
-        msg = "Player " + (data.player_index+1) + " has chosen you as your partner!" + " Player " + (turn+1) + " starts the game..."
+        msg = "Player " + (data.player_index+1) + " has chosen you("+ data.card_name + ") as your partner!" + " Player " + (turn+1) + " starts the game..."
       }
       else{
         msg = "Player " + (data.player_index+1) + " has chosen " + data.card_name + " as their partner! " + "Player " + (turn+1) + " starts the game..."
@@ -146,6 +147,7 @@ class Bridge extends Component{
         playing:1,
         break_trump: breaktrump,
         partner_index: data.partner_index,
+        partner_card: data.card_name,
       })
 		}.bind(this));
     this.props.socket.on('BridgeEnd', function(data) {
@@ -356,6 +358,7 @@ class Bridge extends Component{
                 winning_trump = {this.state.winning_trump}
                 winning_player = {this.state.winbid_player}
                 sets = {this.DifftoSet(this.state.winning_diff)}
+                partner_card = {this.state.partner_card}
     					/>
         <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				<div className = "hand">
