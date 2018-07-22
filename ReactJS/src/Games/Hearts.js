@@ -64,7 +64,7 @@ class Hearts extends Component{
     this.props.socket.on('HeartsWaitPassCards', function(msg) {
       //Update message informing players to wait
       this.setState({
-        message: msg
+        message: msg,
       })
 		}.bind(this));
     this.props.socket.on('PassedCards',function(data){
@@ -127,7 +127,7 @@ class Hearts extends Component{
         scoreboard: data.scoreboard,
         played_cards: data.played_cards,
         selected_cards:[],
-        votenext: 1,
+        vote_next: 1,
       })
 		}.bind(this));
     this.props.socket.on('StartNextGame',function(data){
@@ -274,6 +274,7 @@ class Hearts extends Component{
   }
 
   handleVoteNextGame = () =>{
+    this.setState({vote_next:0})
     this.props.socket.emit("VoteNextGame",{
       player_index: this.state.player_index,
       pinNo: this.state.server_PIN,
@@ -367,7 +368,7 @@ class Hearts extends Component{
           onClick = {this.handlePassCards}
           >Pass Cards</button>
           <button className = "button" hidden = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
-          <button className = "button" hidden = {!this.state.votenext} onClick = {this.handleVoteNextGame}>Start next game!</button>
+          <button className = "button" hidden = {!this.state.vote_next} onClick = {this.handleVoteNextGame}>Start next game!</button>
         </div>
         <div className = "statusbox">
 					<p>{this.state.message}</p>

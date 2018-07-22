@@ -661,7 +661,7 @@ io.on('connection', function(socket) {
 					}
 				}
 
-				//Check for draws
+				//Check for ties
 				for(let i = 0;i<4;i++){
 					if(gameInstances[gameInstanceIndex].scoreboard[i].score === leastscore){
 						firstplace.push(leastscore);
@@ -768,7 +768,7 @@ io.on('connection', function(socket) {
 		//Not everybody has selected their cards. Prints out waiting message...
 		else{
 			msg = "Waiting on player(s):" + waitplayers.join() + "to vote next round..."
-
+			io.sockets.in(data.pinNo).emit('HeartsWaitPassCards',msg);
 
 		}
 	});
@@ -844,7 +844,6 @@ io.on('connection', function(socket) {
 			playedcards = [];
 		}
 		playedcards.push({card:data.played_card, player_index:(data.player_index)});
-		console.log("Bridge")
 		//Checks if starting a trick
 		if(playedcards.length === 1){
 			msg = "Player " + (data.player_index+1) + " starts the trick with " + data.played_card.name + "! Waiting for Player " + (whoseTurn+1) + "...";
