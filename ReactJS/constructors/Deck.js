@@ -1,5 +1,3 @@
-import React from 'react';
-
 class Deck {
 	constructor() {
 		this.deck = [];

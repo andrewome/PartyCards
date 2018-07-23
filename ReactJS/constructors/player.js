@@ -1,5 +1,3 @@
-import React from 'react';
-
 class player {
 	constructor(num_players){
 		this.list = [];

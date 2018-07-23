@@ -189,7 +189,7 @@ io.on('connection', function(socket) {
 			whoseTurn: whoseTurn,
 			pinNo: data.pinNo,
 			gametype: data.gameType,
-			num_players: data.num_players,
+			num_players: parseInt(data.num_players),
 			current_players: 0,
 			deck: new Deck(),
 			player: new player(data.num_players),
@@ -259,29 +259,60 @@ io.on('connection', function(socket) {
 						gameInstances[gameInstanceIndex].deck.generate_deck();
 						gameInstances[gameInstanceIndex].deck.shuffle();
 
-						//if game is taiti, whoseturn should go to whoever who has 3 of diamonds
-						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf()) {
-							for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
-								for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
-									if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name.valueOf() === "3 of Diamonds".valueOf()) {
-										gameInstances[gameInstanceIndex].whoseTurn = i;
-										break;
+						// dealing out the cards
+						// for taiti, if number of players = 3, means there'll be an excess card. This card goes to the holder of the 3 of diamonds
+						if(gameInstances[gameInstanceIndex].gametype === "Taiti") {
+							if(gameInstances[gameInstanceIndex].num_players === 3) {
+								//deal the cards
+								var count = 0;
+								for(i=0;i<51;i++) {
+									let card = gameInstances[gameInstanceIndex].deck.deal();
+									gameInstances[gameInstanceIndex].player.list[count % gameInstances[gameInstanceIndex].num_players].hand.push(card);
+									count++;
+								}
+								
+								let card = gameInstances[gameInstanceIndex].deck.deal();
+								if(card.name === "3 of Diamonds") {
+									//find 3 of Clubs, player will start
+									for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+										for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
+											if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name === "3 of Clubs") {
+												gameInstances[gameInstanceIndex].player.list[i].hand.push(card);
+												gameInstances[gameInstanceIndex].whoseTurn = i;
+												break;	
+											}
+										}
+									}
+								}
+								else {	
+									//find 3 of D, player will start
+									for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+										for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
+											if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name === "3 of Diamonds") {
+												gameInstances[gameInstanceIndex].player.list[i].hand.push(card);
+												gameInstances[gameInstanceIndex].whoseTurn = i;
+												break;
+											}
+										}
 									}
 								}
 							}
-						}
-
-						// dealing out the cards
-						// for taiti, if number of players = 3, means there'll be an excess card. This card goes to the holder of the 3 of diamonds
-						if(gameInstances[gameInstanceIndex].gametype.valueOf() === "Taiti".valueOf() && gameInstances[gameInstanceIndex].num_players === 3) {
-							var count = 0;
-							for(i=0;i<51;i++) {
-								let card = gameInstances[gameInstanceIndex].deck.deal();
-								gameInstances[gameInstanceIndex].player.list[count % gameInstances[gameInstanceIndex].num_players].hand.push(card);
-								count++;
+							else {
+								//deal cards
+								while(gameInstances[gameInstanceIndex].deck.size() !== 0) {
+									let card = gameInstances[gameInstanceIndex].deck.deal();
+									gameInstances[gameInstanceIndex].player.list[(gameInstances[gameInstanceIndex].deck.size() + 1)%gameInstances[gameInstanceIndex].num_players].hand.push(card);
+								}
+								//find 3 of D, player will start the game
+								for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
+									for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
+										if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name === "3 of Diamonds") {
+											gameInstances[gameInstanceIndex].whoseTurn = i;
+											break;
+										}
+									}
+								}
 							}
-							let card = gameInstances[gameInstanceIndex].deck.deal();
-							gameInstances[gameInstanceIndex].player.list[gameInstances[gameInstanceIndex].whoseTurn].hand.push(card);
 						}
 						else {
 							while(gameInstances[gameInstanceIndex].deck.size() !== 0) {
