@@ -707,6 +707,10 @@ class Taiti extends Component {
 	}
 
 	disableSelectButton = (index, whoseTurn) => {
+		if(whoseTurn === -1) {
+			return true;
+		}
+		
 		if(whoseTurn === index) {
 			return false;
 		}
@@ -756,7 +760,7 @@ class Taiti extends Component {
 
 		return (
 			<div className = "Game">
-				<div>
+				<div className = "scoreboard-table">
 					<GameInfo
 						server_PIN = {this.props.server_PIN}
 						GameName = {this.props.GameName}
@@ -773,7 +777,7 @@ class Taiti extends Component {
 				</div>
 				
 				{last_played_cards.length !== 0 &&
-					<p>Last Played Cards:</p>
+					<p><h1>Last Played Cards:</h1></p>
 				}
 				{last_played_cards.length !== 0 &&
 					<div className = "selected_cards">

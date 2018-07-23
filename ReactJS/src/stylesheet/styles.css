@@ -1,162 +1,260 @@
-body {
-	color: white;
-	background-image: url("background.jpg");
-	margin: 0;
-	padding: 0;
-	font-family: sans-serif;
-	background-color: #00990d;
-}
+@media all and (orientation:landscape) {
+	body {
+		color: white;
+		background-image: url("background.jpg");
+		margin: 0;
+		padding: 0;
+		font-family: sans-serif;
+		background-color: #00990d;
+	}
 
-h1 {
-	color: white;
-	font-size: 28px;
-	display: inline;
-}
-
-span {
-	display: inline-block;
-	vertical-align: middle;
-	line-height: normal;
-}
-
-.Init{
-	text-align: center;
-	align-items: center;
-	font-family: arial;
-}
-
-.textfield{
-	margin: 10px;
-}
-
-.button{
-	margin: 10px;
-}
-.App {
-	border: 0px #solid #eee;
-	display: block;
-	text-align: center;
-	margin: 20px;
-	padding: 70px;
-	background-color: #ffff11ff;
-	font-family: arial;
-	font-weight: bold;
-	font-size: 20px;
-}
-
-.App h1 {
-	color: black;
-	font-size: 28px;
-	display: inline;
-}
-
-.para{
-	font-family: inherit;
-	font-weight: bold;
-}
-.Game{
-	text-align: center;
-	vertical-align: center;
-	display: inline-block;
-	margin: auto;
-	width: 100%;
-	height: 100%;
-	font-family: arial;
-}
-
-.Scoreboard{
-	color: black;
-	border-left: 0px;
-	border-right: 4px #000000;
-	border-top: 4px #000000;
-	border-bottom: 4px #000000;
-	border-style: solid;
+	h1 {
+		color: white;
+		font-size: 200%;
+		display: inline;
+	}
 	
-	height: 200px;
-	width: 250px;
-	line-height: 200px;
+	.joinServer button {
+		margin-left: 0.3%;
+	}
 	
-	display: inline-block;
-	padding: 10px;
+	.Init {
+		text-align: center;
+		align-items: center;
+		font-family: arial;
+	}
+
+	.handtest{
+		width: 100%;
+	}
+
+	.title {
+		border: 0px #solid #eee;
+		display: block;
+		text-align: center;
+		margin: 1.5%;
+		padding: 4%;
+		background-color: #ffff11ff;
+		font-family: arial;
+		font-weight: bold;
+		font-size: 125%;
+	}
+
+	.title h1 {
+		color: black;
+		font-size: 200%;
+		display: inline;
+	}
 	
-	margin-top: 10px;
-	margin-bottom: 10px;
+	.Game{
+		text-align: center;
+		vertical-align: center;
+		display: inline-block;
+		margin: auto;
+		width: 100%;
+		height: 100%;
+		font-family: arial;
+	}
+
+	.Game button {
+		margin: 0.3%;
+		margin-top: 0.5%;
+	}
+		
+	.scoreboard-table {
+		margin: auto;
+		display: table;
+		width: 80%;
+	}
+
+	.Scoreboard {
+		max-width: 0px;
+		display: table-cell;
+		
+		border: 0.005% #000000;
+		border-style: solid;	
+		padding: 0.5%;
+		
+		color: black;
+		font-family:  arial;
+		text-align: center;
+		vertical-align: middle;
+		
+		background-color: silver;
+
+	}
+
+	.Scoreboard h1 {
+		color: black;
+		font-size: 180%;
+		display: inline;
+	}
+
+	.statusbox {
+		font-size: 150%;
+		font-weight: bold;
+		vertical-align: bottom;
+		margin: auto;
+	}
+
+	.hand {
+		display: inline;
+		margin-left: 4.125%;
+	}
+
+	.selected-cards {
+		margin: auto;
+		display: inline;
+	}
 	
-	background-color: silver;
-	font-family:  arial;
-	text-align: left;
-}
-
-.Scoreboard h1 {
-	color: black;
-	font-size: 28px;
-	display: inline;
-}
-
-.GameInfo {
-	color: black;
-	border-right: 4px #000000;
-	border-left: 4px #000000;
-	border-top: 4px #000000;
-	border-bottom: 4px #000000;
-	border-style: solid;
+	.cards {
+		width: 5.5%;
+		margin-left: -4.125%;
+	}
 	
-	height: 200px;
-	width: 250px;
-	line-height: 200px;
+	.scards {
+		width: 5.5%;
+		margin: 0.05%;
+	}	
 	
-	display: inline-block;
-	padding: 10px;
+	.discardpile{
+		text-align: center;
+	}
+
+	.label{
+		margin: 10px;
+	}
+	.dropdown{
+		margin: 10px;
+	}
+}
+
+@media all and (orientation:portrait) {
+	body {
+		font-size: 70%;
+		color: white;
+		background-image: url("background.jpg");
+		font-family: sans-serif;
+		background-color: #00990d;
+	}
+
+	h1 {
+		color: white;
+		font-size: 130%;
+		display: inline;
+	}
+
+	.Init{
+		text-align: center;
+		align-items: center;
+		font-family: arial;
+	}
+
+	.joinServer button {
+		margin-left: 0.7%;
+	}
 	
-	margin-top: 10px;
-	margin-bottom: 10px;
 	
-	background-color: silver;
-	font-family: arial;
-	text-align: left;
+	.handtest{
+		width: 100%;
+	}
+
+	.title {
+		border: 0px #solid #eee;
+		display: block;
+		text-align: center;
+		margin: 5%;
+		padding: 15%;
+		background-color: #ffff11ff;
+		font-family: arial;
+		font-weight: bold;
+		font-size: 125%;
+	}
+
+	.title h1 {
+		color: black;
+		font-size: 250%;
+		display: inline;
+	}
+	
+	.Game {
+		text-align: center;
+		vertical-align: center;
+		display: inline-block;
+		width: 100%;
+		height: 100%;
+		font-family: arial;
+	}
+
+	.Game button {
+		margin: 1%;
+	}
+	
+	.scoreboard-table {
+		margin: auto;
+		display: table;
+		width: 100%;
+	}
+
+	.Scoreboard {
+		max-width: 0px;
+		display: table-cell;
+		
+		border: 0.005% #000000;
+		border-style: solid;	
+		padding: 0.5%;
+		
+		color: black;
+		font-family:  arial;
+		text-align: center;
+		vertical-align: middle;
+		
+		background-color: silver;
+	}
+
+	.Scoreboard h1 {
+		color: black;
+		font-size: 130%;
+		display: inline;
+	}
+
+	.statusbox {
+		font-size: 130%;
+		font-weight: bold;
+		vertical-align: bottom;
+		margin: auto;
+	}
+
+	.hand {
+		display: inline;
+		margin-left: 15%;
+	}
+
+	.cards {
+		width: 20%;
+		margin-left: -15%;
+	}	
+	
+	.selected-cards {
+		margin: auto;
+		display: inline;
+	}
+	
+	.scards {
+		width: 20%;
+		margin: 0.05%;
+	}	
+	
+	.discardpile{
+		text-align: center;
+	}
+
+	.label{
+		margin: 10px;
+	}
+	
+	.dropdown{
+		margin: 10px;
+	}
 }
 
-.GameInfo h1 {
-	color: black;
-	font-size: 28px;
-	display: inline;
-}
-
-.statusbox {
-	font-size: 20px;
-	font-weight: bold;
-	vertical-align: bottom;
-	margin: auto;
-}
-
-.hand {
-	display: inline;
-	margin-left: 75px;
-}
-
-.selected-cards {
-	margin: auto;
-	display: inline;
-}
-
-.discardpile{
-	text-align: center;
-}
-
-.label{
-	margin: 10px;
-}
-.dropdown{
-	margin: 10px;
-}
-.cards{
-	width: 100px;
-	margin-left: -75px;
-}
-.scards{
-	width: 100px;
-	margin: 1px;
-}
-.handtest{
-	width: 100%;
-}

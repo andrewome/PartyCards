@@ -25,13 +25,12 @@ class Init extends Component {
 	
 	render(){
 		return (
-			<div className="Init">
-				<button type = "primary" className = "button" onClick = {this.handle_create_server}> Create New Server </button>
-				<br/>
-				<p className = "para"> or </p>
-				{/*}<input type = "text" className = "textfield" value = {this.state.server_PIN} onChange={(e) => {this.setState({server_PIN: e.target.value})}}></input>
-				{*/}
-				<button className = "button" onClick = {this.handle_join_server}>Join Existing Server</button>
+			<div className = "Init">
+				<p>
+					<button type = "primary" className = "button" onClick = {this.handle_create_server}> Create New Server </button>
+					<p> or </p>
+					<button className = "button" onClick = {this.handle_join_server}>Join Existing Server</button>
+				</p>
 			</div>
 		);
 	}

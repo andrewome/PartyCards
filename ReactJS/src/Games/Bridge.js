@@ -282,19 +282,19 @@ class Bridge extends Component {
 		}
 	
 		this.props.socket.emit("BridgePlayCard", {
-		played_card: this.state.selected_cards[0],
-		whoseTurn: this.state.whoseTurn,
-		played_suit: this.state.selected_cards[0].suit,
-		player_index: this.state.player_index,
-		pinNo: this.state.server_PIN,
-		played_cards: this.state.played_cards,
-		num_tricks: this.state.num_tricks,
-		break_trump: breaktrump,
-		num_game: this.state.num_game,
-		difficulty: this.state.winning_diff,
-		partner_index: this.state.partner_index,
-		trump_suit: this.state.winning_trump.name,
-		winbid_player: this.state.winbid_player,
+			played_card: this.state.selected_cards[0],
+			whoseTurn: this.state.whoseTurn,
+			played_suit: this.state.selected_cards[0].suit,
+			player_index: this.state.player_index,
+			pinNo: this.state.server_PIN,
+			played_cards: this.state.played_cards,
+			num_tricks: this.state.num_tricks,
+			break_trump: breaktrump,
+			num_game: this.state.num_game,
+			difficulty: this.state.winning_diff,
+			partner_index: this.state.partner_index,
+			trump_suit: this.state.winning_trump.name,
+			winbid_player: this.state.winbid_player,
 		});
 	}
 
@@ -370,25 +370,27 @@ class Bridge extends Component {
 		
 		return (
 			<div className = "Game">
-				<GameInfo
-					server_PIN = {this.props.server_PIN}
-					GameName = {this.props.GameName}
-					num_players = {this.props.num_players}
-					current_players = {this.props.current_players}
-					whoseTurn = {this.state.whoseTurn}
-				/>
-				
-				<Scoreboard
-					GameName = {this.props.GameName}
-					whoseTurn = {this.state.whoseTurn}
-					player_index = {this.state.player_index}
-					scoreboard = {this.state.scoreboard}
-					winning_diff = {this.state.winning_diff}
-					winning_trump = {this.state.winning_trump}
-					winning_player = {this.state.winbid_player}
-					sets = {this.DifftoSet(this.state.winning_diff)}
-					partner_card = {this.state.partner_card}
-				/>
+				<div className = "scoreboard-table">
+					<GameInfo
+						server_PIN = {this.props.server_PIN}
+						GameName = {this.props.GameName}
+						num_players = {this.props.num_players}
+						current_players = {this.props.current_players}
+						whoseTurn = {this.state.whoseTurn}
+					/>
+					
+					<Scoreboard
+						GameName = {this.props.GameName}
+						whoseTurn = {this.state.whoseTurn}
+						player_index = {this.state.player_index}
+						scoreboard = {this.state.scoreboard}
+						winning_diff = {this.state.winning_diff}
+						winning_trump = {this.state.winning_trump}
+						winning_player = {this.state.winbid_player}
+						sets = {this.DifftoSet(this.state.winning_diff)}
+						partner_card = {this.state.partner_card}
+					/>
+				</div>
 					
 				<p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
 				

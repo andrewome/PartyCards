@@ -29,7 +29,7 @@ class JoinServer extends Component{
 
 	render() {
 		return (
-			<div className>
+			<div className = "joinServer">
 				<p>Enter the server PIN:</p>
 				<input type = "text" onChange = {this.stateChange}/>
 				<button className = "button" onClick = {this.joinServer}> Submit </button>

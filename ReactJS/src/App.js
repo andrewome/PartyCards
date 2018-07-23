@@ -66,7 +66,7 @@ class Body extends Component {
 					<Init
 						OnHandle_create_server = {this.handlecreate_server}
 						OnHandle_join_server = {this.handlejoin_server}
-					  OnHandleGetPin = {this.handleGetPin}
+						OnHandleGetPin = {this.handleGetPin}
 						socket = {this.socket}
 					/>
 				</div>
@@ -77,54 +77,46 @@ class Body extends Component {
 		else if(this.state.create_server && this.state.server_created) {
 			if(this.state.Game === "Cheat"){
 				return (
-					<div className = "Game">
-						<Cheat
-							GameName = {this.state.Game}
-							num_players = {this.state.num_players}
-							server_PIN = {this.state.server_PIN}
-							socket = {this.socket}
-							current_players = {this.state.current_players}
-						/>
-					</div>
+					<Cheat
+						GameName = {this.state.Game}
+						num_players = {this.state.num_players}
+						server_PIN = {this.state.server_PIN}
+						socket = {this.socket}
+						current_players = {this.state.current_players}
+					/>
 				);
 			}
 			else if(this.state.Game === "Taiti") {
 				return (
-					<div className = "Game">
-						<Taiti
-							GameName = {this.state.Game}
-							num_players = {this.state.num_players}
-							server_PIN = {this.state.server_PIN}
-							socket = {this.socket}
-							current_players = {this.state.current_players}
-						/>
-					</div>
+					<Taiti
+						GameName = {this.state.Game}
+						num_players = {this.state.num_players}
+						server_PIN = {this.state.server_PIN}
+						socket = {this.socket}
+						current_players = {this.state.current_players}
+					/>
 				);
 			}
 			else if(this.state.Game === "Hearts") {
 				return (
-					<div className = "Game">
-						<Hearts
-							GameName = {this.state.Game}
-							num_players = {this.state.num_players}
-							server_PIN = {this.state.server_PIN}
-							socket = {this.socket}
-							current_players = {this.state.current_players}
-						/>
-					</div>
+					<Hearts
+						GameName = {this.state.Game}
+						num_players = {this.state.num_players}
+						server_PIN = {this.state.server_PIN}
+						socket = {this.socket}
+						current_players = {this.state.current_players}
+					/>
 				);
 			}
 			else if(this.state.Game == "Bridge") {
 				return(
-					<div className = "Game">
-						<Bridge
-							GameName = {this.state.Game}
-							num_players = {this.state.num_players}
-							server_PIN = {this.state.server_PIN}
-							socket = {this.socket}
-							current_players = {this.state.current_players}
-						/>
-					</div>
+					<Bridge
+						GameName = {this.state.Game}
+						num_players = {this.state.num_players}
+						server_PIN = {this.state.server_PIN}
+						socket = {this.socket}
+						current_players = {this.state.current_players}
+					/>
 				);
 			}
 			else {

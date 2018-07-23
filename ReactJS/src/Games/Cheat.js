@@ -385,7 +385,7 @@ class Cheat extends Component {
 
 		return (
 			<div className = "Game">
-				<div className = "scoreboard">
+				<div className = "scoreboard-table">
 					<GameInfo
 						server_PIN = {this.props.server_PIN}
 						GameName = {this.props.GameName}
@@ -399,6 +399,7 @@ class Cheat extends Component {
 						whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 						scoreboard = {this.state.scoreboard}
+						discard_pile = {this.state.Discard_pile.length}
 					/>
 				</div>
 				

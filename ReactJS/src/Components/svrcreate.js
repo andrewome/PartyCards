@@ -32,7 +32,6 @@ class Svrcreate extends Component{
 		this.props.OnHandle_num_players(data.num_players);
 		//connect to said server
 		this.props.socket.emit('connectToRoom', data.pinNo);
-		alert('Your server PIN is: ' + this.props.server_PIN);
 	}
 
 	render() {
@@ -63,24 +62,22 @@ class Svrcreate extends Component{
 			return(
 				<div className="Init">
 					<p>Choose the game you want to play:</p>
-					<select
-						value={this.state.selectGame}
-						onChange={this.handleChange}
-						>
+					<select value={this.state.selectGame} onChange={this.handleChange}>
 						<option value="Taiti">Taiti</option>
 						<option value="Cheat">Cheat</option>
 						<option value="Hearts">Hearts</option>
 						<option value="Bridge">Bridge</option>
 					</select>
+					
 					<p>Select the number of players</p>
-					<select value={this.state.num_players}
-					onChange={this.handleNumChange}>
+					<select value={this.state.num_players} onChange={this.handleNumChange}>
 						<option value={2}>2</option>
 						<option value={3}>3</option>
 						<option value={4}>4</option>
 					</select>
-					<br/>
-					<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+					<p>
+						<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+					</p>
 				</div>
 			);
 		}
