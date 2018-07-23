@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import Sort from './sorting';
 import GameInfo from './GameInfo';
 import Scoreboard from './scoreboard'
-import './Games.css';
+import '../stylesheet/styles.css';
 
 function importAll(r) {
   let images = {};
@@ -291,117 +291,129 @@ class Bridge extends Component{
     }
   }
 
-  render(){
-    var Trumps = [{value: '0', name:"Clubs"}, {value: '1', name: "Diamonds"}, {value: '2', name:"Hearts"},{value: '3', name:"Spades" },{value: '4', name: "No Trump" }];
-    var Suits = [{value: '0', name:"Clubs"}, {value: '1', name: "Diamonds"}, {value: '2', name:"Hearts"},{value: '3', name:"Spades" }]
-    var Difficulty = [1,2,3,4,5,6,7];
-    var values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-    var playerhand = this.state.player_hand
-    var selectedcards = this.state.selected_cards;
-    var playedcards = this.state.played_cards;
+	render() {
+		var Trumps = [{value: '0', name:"Clubs"}, {value: '1', name: "Diamonds"}, {value: '2', name:"Hearts"},{value: '3', name:"Spades" },{value: '4', name: "No Trump" }];
+		var Suits = [{value: '0', name:"Clubs"}, {value: '1', name: "Diamonds"}, {value: '2', name:"Hearts"},{value: '3', name:"Spades" }]
+		var Difficulty = [1,2,3,4,5,6,7];
+		var values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+		var playerhand = this.state.player_hand
+		var selectedcards = this.state.selected_cards;
+		var playedcards = this.state.played_cards;
 
-		//Sorts hand according to Suit
+			//Sorts hand according to Suit
 		playerhand = Sort.bySuit(playerhand);
-    const listValues = values.map((d) => <option value = {d}> {d} </option>)
-    const listDifficulty = Difficulty.map((d) => <option value = {d}> {d} </option>)
-    const listTrumps = Trumps.map((d) => <option value = {d.value} > {d.name} </option>)
-    const listSuits = Suits.map((d) => <option value = {d.value} > {d.name} </option>)
-    const listPlayedCards = playedcards.map((d) => <img className = "scards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
-    const listHand = playerhand.map((d) =>
+		const listValues = values.map((d) => <option value = {d}> {d} </option>)
+		const listDifficulty = Difficulty.map((d) => <option value = {d}> {d} </option>)
+		const listTrumps = Trumps.map((d) => <option value = {d.value} > {d.name} </option>)
+		const listSuits = Suits.map((d) => <option value = {d.value} > {d.name} </option>)
+		const listPlayedCards = playedcards.map((d) => <img className = "scards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
+		const listHand = playerhand.map((d) =>
 			<img className = "cards" src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
-        let index = playerhand.findIndex(x => x.name === d.name);
-        if(this.state.bidding || this.state.choose_partner){
-          return;
-        }
-        if(this.state.whoseTurn === this.state.player_index){
-          if(selectedcards.length === 1){
-            this.setState({message: "You can only select 1 card to play"});
-            return;
-          }
-          else{
-            playerhand.splice(index, 1);
-            selectedcards.push(d);
-          }
-        }
-        this.setState({message: "You selected " + d.name});
-				this.setState({player_hand: playerhand});
-				this.setState({selected_cards: selectedcards});
+					let index = playerhand.findIndex(x => x.name === d.name);
+					if(this.state.bidding || this.state.choose_partner){
+						return;
+					}
+					if(this.state.whoseTurn === this.state.player_index) {
+						if(selectedcards.length === 1){
+							this.setState({message: "You can only select 1 card to play"});
+							return;
+						}
+						else {
+							playerhand.splice(index, 1);
+							selectedcards.push(d);
+						}
+					}
+					
+					this.setState({message: "You selected " + d.name});
+					this.setState({player_hand: playerhand});
+					this.setState({selected_cards: selectedcards});
 				}}
 			/>
 		);
-    const listCards = selectedcards.map((d) =>
+		
+		const listCards = selectedcards.map((d) =>
 			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
-      onClick = {() => {
-        let card = selectedcards.pop();
-        playerhand.push(card);
-        this.setState({message: "Pick a card!"});
-        this.setState({player_hand: playerhand});
-				this.setState({selected_cards: selectedcards});
-      }}
-			/>);
-    return(
-      <div className = "Parent">
-        <GameInfo
-    						server_PIN = {this.props.server_PIN}
-    						GameName = {this.props.GameName}
-    						num_players = {this.props.num_players}
-    						current_players = {this.props.current_players}
-    						whoseTurn = {this.state.whoseTurn}
-    					/>
-    		<Scoreboard
-    						GameName = {this.props.GameName}
-    						whoseTurn = {this.state.whoseTurn}
-    						player_index = {this.state.player_index}
-    						scoreboard = {this.state.scoreboard}
-                winning_diff = {this.state.winning_diff}
-                winning_trump = {this.state.winning_trump}
-                winning_player = {this.state.winbid_player}
-                sets = {this.DifftoSet(this.state.winning_diff)}
-                partner_card = {this.state.partner_card}
-    					/>
-        <p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
+				onClick = {() => {
+					let card = selectedcards.pop();
+						playerhand.push(card);
+						this.setState({message: "Pick a card!"});
+						this.setState({player_hand: playerhand});
+						this.setState({selected_cards: selectedcards});
+				}}
+			/>
+		);
+		
+		return (
+			<div className = "Game">
+				<GameInfo
+					server_PIN = {this.props.server_PIN}
+					GameName = {this.props.GameName}
+					num_players = {this.props.num_players}
+					current_players = {this.props.current_players}
+					whoseTurn = {this.state.whoseTurn}
+				/>
+				
+				<Scoreboard
+					GameName = {this.props.GameName}
+					whoseTurn = {this.state.whoseTurn}
+					player_index = {this.state.player_index}
+					scoreboard = {this.state.scoreboard}
+					winning_diff = {this.state.winning_diff}
+					winning_trump = {this.state.winning_trump}
+					winning_player = {this.state.winbid_player}
+					sets = {this.DifftoSet(this.state.winning_diff)}
+					partner_card = {this.state.partner_card}
+				/>
+					
+				<p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
+				
 				<div className = "hand">
 					{listHand}
 				</div>
-        <p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
-        {listCards}
-        <div hidden = {this.state.played_cards.length === 0} >
-          <p>Played Cards: </p>
-          {listPlayedCards}
-        </div>
-        <div hidden = {!this.state.bidding || (this.state.whoseTurn !== this.state.player_index)}>
-          <label> Difficulty: </label>
-          <select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
-            {listDifficulty}
-          </select>
-          <label> Trump: </label>
-          <select value = {this.state.trump.name} onChange ={this.handleTrumpChange}>
-            {listTrumps}
-          </select>
-          <button className = "button" onClick = {this.handlebidding}>Bid</button>
-          <button className = "button" onClick = {this.handlePass}>Pass</button>
-        </div>
-        <div hidden = {!this.state.playing || (this.state.whoseTurn !== this.state.player_index)}>
-          <button className = "button" onClick = {this.handlePlayCard}>Play Card</button>
-        </div>
-        <div hidden = {!this.state.choose_partner || (this.state.whoseTurn !== this.state.player_index)}>
-          <label>Value: </label>
-          <select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
-            {listValues}
-          </select>
-          <label>Suit: </label>
-          <select value = {this.state.trump} onChange ={this.handleTrumpChange}>
-            {listSuits}
-          </select>
-          <button className = "button" onClick = {this.handleChoosePartner}>Choose Partner</button>
-        </div>
-        <div className = "statusbox">
+				
+				<p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
+				{listCards}
+				
+				<div hidden = {this.state.played_cards.length === 0} >
+					<p>Played Cards: </p>
+					{listPlayedCards}
+				</div>
+				
+				<div hidden = {!this.state.bidding || (this.state.whoseTurn !== this.state.player_index)}>
+					<label> Difficulty: </label>
+					<select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
+						{listDifficulty}
+					</select>
+					<label> Trump: </label>
+					<select value = {this.state.trump.name} onChange ={this.handleTrumpChange}>
+						{listTrumps}
+					</select>
+					<button className = "button" onClick = {this.handlebidding}>Bid</button>
+					<button className = "button" onClick = {this.handlePass}>Pass</button>
+				</div>
+				
+				<div hidden = {!this.state.playing || (this.state.whoseTurn !== this.state.player_index)}>
+					<button className = "button" onClick = {this.handlePlayCard}>Play Card</button>
+				</div>
+				
+				<div hidden = {!this.state.choose_partner || (this.state.whoseTurn !== this.state.player_index)}>
+					<label>Value: </label>
+					<select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
+						{listValues}
+					</select>
+					<label>Suit: </label>
+					<select value = {this.state.trump} onChange ={this.handleTrumpChange}>
+						{listSuits}
+					</select>
+					<button className = "button" onClick = {this.handleChoosePartner}>Choose Partner</button>
+				</div>
+				<div className = "statusbox">
 					<p>{this.state.message}</p>
 				</div>
-      </div>
-    );
-  }
+			</div>
+		);
+	}
 }
 
 export default Bridge;

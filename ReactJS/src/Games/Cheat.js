@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './Games.css';
+import '../stylesheet/styles.css';
 import GameInfo from './GameInfo';
 import Sort from './sorting';
 import Scoreboard from './scoreboard'
@@ -34,8 +34,8 @@ class Cheat extends Component {
 		
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
-			var msg = ('The last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first.');
-			this.setState({message: msg});
+			var msg;
+			
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id === this.props.socket.id) {
@@ -55,6 +55,14 @@ class Cheat extends Component {
 				playerID: data.player.list[i].ID,
 				scoreboard: data.scoreboard,
 			});
+			
+			if(data.whoseTurn === this.state.player_index) {
+				msg = ('Last man has joined! You will start the round.');
+			}
+			else {
+				msg = ('The last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first.');
+			}
+			this.setState({message: msg});
 		}.bind(this));
 		
 		//upon reconnection
@@ -376,7 +384,7 @@ class Cheat extends Component {
 		const listvaloptions = valoptions.map((index) => <option value = {index} key = {index}>{index}</option>)
 
 		return (
-			<div className = "Parent">
+			<div className = "Game">
 				<div className = "scoreboard">
 					<GameInfo
 						server_PIN = {this.props.server_PIN}
@@ -395,16 +403,16 @@ class Cheat extends Component {
 				</div>
 				
 				{(!(parseInt(this.state.declared_cards.num) === -1 && this.state.declared_cards.val === -1)) &&
-					<p>Last declared card(s): <h1>{this.state.declared_cards.num} cards of {this.state.declared_cards.val}</h1></p>
+					<p><h1>Last declared card(s): {this.state.declared_cards.num} cards of {this.state.declared_cards.val}</h1></p>
 				}
 				
-				<p>Your hand:</p>
+				<p><h1>Your hand:</h1></p>
 				<div className = "hand">
 					{listHand}
 				</div>
 				
-				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
-					<p>Selected cards:</p>
+				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && selectedcards.length !== 0 &&
+					<p><h1>Selected cards:</h1></p>
 				}
 				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
 					<div className = "selected_cards">
@@ -412,7 +420,7 @@ class Cheat extends Component {
 					</div>
 				}
 				
-				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
+				{!this.disableSelectButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && selectedcards.length !== 0 &&
 					<form onSubmit = {this.handleSubmit.bind(this)}>
 						<label className = "label">Choose the card you are going to play:</label>
 							<select ref = "val" className = "dropdown">

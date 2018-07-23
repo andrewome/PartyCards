@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './homepage.css';
+import './stylesheet/styles.css';
 import Svrcreate from './svrcreate';
 import JoinServer from './joinserver';
 import Title from './title';
@@ -59,7 +59,7 @@ class Body extends Component {
 	render() {
 
 		// if create_server & join_server is false, show the main page
-		if(!this.state.create_server && !this.state.join_server){
+		if(!this.state.create_server && !this.state.join_server) {
 			return (
 				<div>
 					<Title />
@@ -77,7 +77,7 @@ class Body extends Component {
 		else if(this.state.create_server && this.state.server_created) {
 			if(this.state.Game === "Cheat"){
 				return (
-					<div>
+					<div className = "Game">
 						<Cheat
 							GameName = {this.state.Game}
 							num_players = {this.state.num_players}
@@ -90,7 +90,7 @@ class Body extends Component {
 			}
 			else if(this.state.Game === "Taiti") {
 				return (
-					<div>
+					<div className = "Game">
 						<Taiti
 							GameName = {this.state.Game}
 							num_players = {this.state.num_players}
@@ -103,7 +103,7 @@ class Body extends Component {
 			}
 			else if(this.state.Game === "Hearts") {
 				return (
-					<div>
+					<div className = "Game">
 						<Hearts
 							GameName = {this.state.Game}
 							num_players = {this.state.num_players}
@@ -114,20 +114,20 @@ class Body extends Component {
 					</div>
 				);
 			}
-		else if(this.state.Game == "Bridge") {
-			return(
-				<div className = "Game">
-					<Bridge
-						GameName = {this.state.Game}
-						num_players = {this.state.num_players}
-						server_PIN = {this.state.server_PIN}
-						socket = {this.socket}
-						current_players = {this.state.current_players}
-					/>
-				</div>
-			);
-		}
-			else{
+			else if(this.state.Game == "Bridge") {
+				return(
+					<div className = "Game">
+						<Bridge
+							GameName = {this.state.Game}
+							num_players = {this.state.num_players}
+							server_PIN = {this.state.server_PIN}
+							socket = {this.socket}
+							current_players = {this.state.current_players}
+						/>
+					</div>
+				);
+			}
+			else {
 				return(
 					<div className = "App">
 						Work in progress... Sorry!
@@ -135,6 +135,7 @@ class Body extends Component {
 				);
 			}
 		}
+		
 		// if create create_server is false and server_created is false, show server creation page
 		else if(this.state.create_server && !this.state.server_created ){
 			return(

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './homepage.css';
+import '../stylesheet/styles.css';
 import Svrcreate from './svrcreate';
 import JoinServer from './joinserver';
 import Title from './title';

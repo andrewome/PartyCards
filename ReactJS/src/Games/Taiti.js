@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './Games.css';
+import '../stylesheet/styles.css';
 import GameInfo from './GameInfo';
 import Sort from './sorting';
 import Scoreboard from './scoreboard'
@@ -33,8 +33,7 @@ class Taiti extends Component {
 
 		// When server emits the start game command
 		this.props.socket.on('startGame', function(data) {
-			var msg = ('Last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first because he has 3 of diamonds');
-			this.setState({message: msg});
+			var msg;
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
 				if(data.player.list[i].id === this.props.socket.id) {
@@ -52,6 +51,14 @@ class Taiti extends Component {
 				playerID: data.player.list[i].ID,
 				scoreboard: data.scoreboard,
 			});
+			
+			if(data.whoseTurn === this.state.player_index) {
+				msg = ('Last man has joined, you will start the round.');
+			}
+			else {
+				msg = ('Last man has joined! Game is now starting. Player ' + (data.whoseTurn + 1) + ' will start first because he has 3 of diamonds');	
+			}
+			this.setState({message: msg});		
 		}.bind(this));
 	
 		//upon reconnection
@@ -748,7 +755,7 @@ class Taiti extends Component {
 			/>);
 
 		return (
-			<div className = "Parent">
+			<div className = "Game">
 				<div>
 					<GameInfo
 						server_PIN = {this.props.server_PIN}
@@ -774,13 +781,13 @@ class Taiti extends Component {
 					</div>
 				}
 				
-				<p>Your hand:</p>
+				<p><h1>Your hand:</h1></p>
 				<div className = "hand">
 					{listHand}
 				</div>
 				
-				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
-					<p>Selected cards:</p>
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) && selectedcards.length !== 0 &&
+					<p><h1>Selected cards:</h1></p>
 				}
 				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
 					<div className = "selected_cards">
@@ -788,7 +795,7 @@ class Taiti extends Component {
 					</div>
 				}
 				
-				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&
+				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) && selectedcards.length !== 0 &&
 					<button disabled = {this.disableSelectButton(this.state.player_index, this.state.whoseTurn)} className = "button" onClick = {this.handleSubmit}>Submit</button>
 				}
 				{!this.disableSelectButton(this.state.player_index, this.state.whoseTurn) &&

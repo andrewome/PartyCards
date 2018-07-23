@@ -1,3 +1,6 @@
 /ReactJS/node_modules/*
-ReactJS/src/Games/test.js
+/ReactJS/src/Games/test.js
 /ReactJS/build/*
+run-build.bat
+npm-start.bat
+start-server.bat
