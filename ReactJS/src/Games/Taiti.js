@@ -224,10 +224,28 @@ class Taiti extends Component {
 				return -1;
 		}
 	}
-
+	toSelectedType = (val) => {
+		switch(val) {
+			case 0:
+				return 'straight';
+			case 1:
+				return 'flush';
+			case 2:
+				return 'full house';
+			case 3:
+				return 'four of a kind';
+			case 4:
+				return 'straight flush';
+			case 10:
+				return 'single';
+			case 11:
+				return 'double';
+		}
+	}
+	
 	//checks if a selection of cards is of a valid combination, assumes hand is sorted
 	//returns -1 if false, returns other values for valid combinations (just not -1)
-	//single = 10, double = 11, straight = 0, flush = 1, four of a kind = 2, full house = 3, straight flush = 4
+	//single = 10, double = 11, straight = 0, flush = 1, full house = 2, four of a kind = 3, straight flush = 4
 	checkValidity = (cards) => {
 		var i, j;
 		// if number of cards isn't 1, 2, 3 or 5, it is not a valid combination
@@ -334,21 +352,23 @@ class Taiti extends Component {
 
 	//This function handles the values submitted during user turn
 	handleSubmit = (e) => {
-		var selected_cards_sorted = this.state.selected_cards;
+		var selected_cards_sorted = this.state.selected_cards.slice();
 		Sort.byValue(selected_cards_sorted);
-		var last_played_cards_sorted = this.state.last_played_cards;
+		
+		var last_played_cards_sorted = this.state.last_played_cards.slice();
 		Sort.byValue(last_played_cards_sorted);
+		
 		var isReset = false, valid = true, msg;
 		var selected_highest, last_played_highest, i, j, count, selected_largest, last_played_largest;
 		var selected_type = this.checkValidity(selected_cards_sorted), last_played_type = this.checkValidity(last_played_cards_sorted);
 		var first, second, selected_triplet, last_played_triplet;
 
 		//if last_played_cards array length is 0, means that the round has resetted
-		if(this.state.last_played_cards.length === 0) {
+		if(last_played_cards_sorted.length === 0) {
 			isReset = true;
 		}
 
-		if(this.state.selected_cards.length === 0) {
+		if(selected_cards_sorted.length === 0) {
 			msg = "You cannot submit 0 cards. Use the pass option instead!";
 			valid = false;
 		}
@@ -366,24 +386,24 @@ class Taiti extends Component {
 		//compare with previously played card
 		if(!isReset && valid) {
 			// if number of last played cards is larger than selected cards, then the move is obviously invalid
-			if(this.state.last_played_cards.length > this.state.selected_cards.length) {
-				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
+			if(last_played_cards_sorted.length > selected_cards_sorted.length) {
+				msg = "You have to put down the same number of cards as the person who started this round with (" + last_played_cards_sorted.length + ")";
 				valid = false;
 			}
 
 			// if the number of played cards(checked if it is a valid combo) > last played cards, then move is valid
-			else if(this.state.last_played_cards.length < this.state.selected_cards.length) {
-				msg = "You have to put down the same number of cards as the person who started this round with (" + this.state.last_played_cards.length + ")";
+			else if(last_played_cards_sorted.length < selected_cards_sorted.length) {
+				msg = "You have to put down the same number of cards as the person who started this round with (" + last_played_cards_sorted.length + ")";
 				valid = false;
 			}
 
 			// if number of cards are the same
-			else if(this.state.last_played_cards.length === this.state.selected_cards.length) {
+			else if(last_played_cards_sorted.length === selected_cards_sorted.length) {
 
 				//singles check; value first, then suit
-				if(this.state.selected_cards.length === 1) {
-					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
-						if(this.suitToNum(this.state.selected_cards[0].suit) > this.suitToNum(this.state.last_played_cards[0].suit)) {
+				if(selected_cards_sorted.length === 1) {
+					if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) === this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
+						if(this.suitToNum(selected_cards_sorted[0].suit) > this.suitToNum(last_played_cards_sorted[0].suit)) {
 							valid = true;
 						}
 						else {
@@ -391,30 +411,30 @@ class Taiti extends Component {
 							valid = false;
 						}
 					}
-					else if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) < this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
+					else if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) < this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
 						msg = "Value of card played is smaller than value of last played card";
 						valid = false;
 					}
-					else if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) > this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
+					else if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) > this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
 						valid = true;
 					}
 				}
 
 				//doubles check; value first, then suit
-				else if(this.state.selected_cards.length === 2) {
-					if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) === this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
+				else if(selected_cards_sorted.length === 2) {
+					if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) === this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
 						// check for highest suit
-						if(this.suitToNum(this.state.selected_cards[0].suit) > this.suitToNum(this.state.last_played_cards[0].suit)) {
-							selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
+						if(this.suitToNum(selected_cards_sorted[0].suit) > this.suitToNum(last_played_cards_sorted[0].suit)) {
+							selected_highest = this.suitToNum(selected_cards_sorted[0].suit);
 						}
 						else {
-							selected_highest = this.suitToNum(this.state.selected_cards[1].suit);
+							selected_highest = this.suitToNum(selected_cards_sorted[1].suit);
 						}
-						if(this.suitToNum(this.state.selected_cards[0].suit) > this.suitToNum(this.state.last_played_cards[0].suit)) {
-							last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
+						if(this.suitToNum(selected_cards_sorted[0].suit) > this.suitToNum(last_played_cards_sorted[0].suit)) {
+							last_played_highest = this.suitToNum(last_played_cards_sorted[0].suit);
 						}
 						else {
-							last_played_highest = this.suitToNum(this.state.last_played_cards[1].suit);
+							last_played_highest = this.suitToNum(last_played_cards_sorted[1].suit);
 						}
 
 						if(selected_highest > last_played_highest) {
@@ -426,17 +446,17 @@ class Taiti extends Component {
 						}
 
 					}
-					else if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) < this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
+					else if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) < this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
 						msg = "Value of card played is smaller than value of last played card";
 						valid = false;
 					}
-					else if(this.defaultSymToNum(this.state.selected_cards[0].value.sym) > this.defaultSymToNum(this.state.last_played_cards[0].value.sym)) {
+					else if(this.defaultSymToNum(selected_cards_sorted[0].value.sym) > this.defaultSymToNum(last_played_cards_sorted[0].value.sym)) {
 						valid = true;
 					}
 				}
 
 				//5 card combinations here
-				else if (this.state.selected_cards.length === 5) {
+				else if (selected_cards_sorted.length === 5) {
 					//check type of 5 card combination; straight flush(4) > 4 of a kind(3) > full house(2) > flush(1) > straight(0)
 					//if selected hand is higher than last played, valid
 					if(selected_type > last_played_type) {
@@ -472,18 +492,18 @@ class Taiti extends Component {
 						// if it's flush check suit first, if suit is the same tiebreaker by looking at largest value
 						else if(selected_type === 1) {
 
-							selected_highest = this.suitToNum(this.state.selected_cards[0].suit);
-							last_played_highest = this.suitToNum(this.state.last_played_cards[0].suit);
+							selected_highest = this.suitToNum(selected_cards_sorted[0].suit);
+							last_played_highest = this.suitToNum(last_played_cards_sorted[0].suit);
 
 							selected_largest = -1;
 							last_played_largest = -1;
 
 							for(i=0;i<5;i++) {
-								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) > selected_largest) {
-									selected_largest = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
+								if(this.defaultSymToNum(selected_cards_sorted[i].value.sym) > selected_largest) {
+									selected_largest = this.defaultSymToNum(selected_cards_sorted[i].value.sym);
 								}
-								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) > last_played_largest) {
-									last_played_largest = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
+								if(this.defaultSymToNum(last_played_cards_sorted[i].value.sym) > last_played_largest) {
+									last_played_largest = this.defaultSymToNum(last_played_cards_sorted[i].value.sym);
 								}
 							}
 
@@ -509,11 +529,11 @@ class Taiti extends Component {
 						else if(selected_type === 2) {
 
 							//find the triplet for selected cards
-							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
-							count = 0;
+							first = this.defaultSymToNum(selected_cards_sorted[0].value.sym);
+							count = 1;
 							for(i=1;i<5;i++) {
-								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
+								if(this.defaultSymToNum(selected_cards_sorted[i].value.sym) !== first) {
+									second = this.defaultSymToNum(selected_cards_sorted[i].value.sym);
 								}
 								else {
 									count++;
@@ -527,11 +547,11 @@ class Taiti extends Component {
 							}
 
 							//find triplet for last played card
-							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
-							count = 0;
+							first = this.defaultSymToNum(last_played_cards_sorted[0].value.sym);
+							count = 1;
 							for(i=1;i<5;i++) {
-								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
+								if(this.defaultSymToNum(last_played_cards_sorted[i].value.sym) !== first) {
+									second = this.defaultSymToNum(last_played_cards_sorted[i].value.sym);
 								}
 								else {
 									count++;
@@ -559,11 +579,11 @@ class Taiti extends Component {
 							var selected_four_val, last_played_four_val;
 
 							//find value and suit of selected cards
-							first = this.defaultSymToNum(this.state.selected_cards[0].value.sym);
+							first = this.defaultSymToNum(selected_cards_sorted[0].value.sym);
 							count = 1;
 							for(i=1;i<5;i++) {
-								if(this.defaultSymToNum(this.state.selected_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.selected_cards[i].value.sym);
+								if(this.defaultSymToNum(selected_cards_sorted[i].value.sym) !== first) {
+									second = this.defaultSymToNum(selected_cards_sorted[i].value.sym);
 								}
 								else {
 									count++;
@@ -577,11 +597,11 @@ class Taiti extends Component {
 							}
 
 							// rinse and repeat for last played cards
-							first = this.defaultSymToNum(this.state.last_played_cards[0].value.sym);
+							first = this.defaultSymToNum(last_played_cards_sorted[0].value.sym);
 							count = 1;
 							for(i=1;i<5;i++) {
-								if(this.defaultSymToNum(this.state.last_played_cards[i].value.sym) !== first) {
-									second = this.defaultSymToNum(this.state.last_played_cards[i].value.sym);
+								if(this.defaultSymToNum(last_played_cards_sorted[i].value.sym) !== first) {
+									second = this.defaultSymToNum(last_played_cards_sorted[i].value.sym);
 								}
 								else {
 									count++;
@@ -607,10 +627,10 @@ class Taiti extends Component {
 						//straight flush - look at value first, followed by largest suit.
 						else if(selected_type === 4) {
 
-							selected_highest = this.suitToNum(this.state.selected_cards_sorted[4].suit);
-							last_played_highest = this.suitToNum(this.state.last_played_cards_sorted[4].suit);
-							selected_largest = this.straightSymToNum(this.state.selected_cards_sorted[4].value.sym);
-							last_played_largest = this.straightSymToNum(this.state.last_played_cards_sorted[4].value.sym);
+							selected_highest = this.suitToNum(selected_cards_sorted[4].suit);
+							last_played_highest = this.suitToNum(last_played_cards_sorted[4].suit);
+							selected_largest = this.straightSymToNum(selected_cards_sorted[4].value.sym);
+							last_played_largest = this.straightSymToNum(last_played_cards_sorted[4].value.sym);
 
 							if(selected_largest > last_played_largest) {
 								valid = true;
@@ -656,6 +676,7 @@ class Taiti extends Component {
 				whoseTurn: this.state.whoseTurn,
 				selected_cards: this.state.selected_cards,
 				passVote: false,
+				selected_type: this.toSelectedType(selected_type),
 			});
 			//clear selected cards hand
 			this.setState({selected_cards: []});

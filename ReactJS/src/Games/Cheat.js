@@ -422,12 +422,14 @@ class Cheat extends Component {
 					</form>
 				}
 				
-				{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && 
-					<button className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
-				}
-				{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && 
-					<button className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
-				}
+				<p>
+					{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) &&
+						<button className = "button" onClick = {this.handleCallCheat}>Call Cheat!</button>
+					}
+					{!this.disableCheatButton(this.state.turn_phase, this.state.player_index, this.state.whoseTurn) && 
+						<button className = "button" onClick = {this.handleDontCallCheat}>Don't Call Cheat!</button>
+					}
+				</p>
 				
 				<div className = "statusbox">
 					<p>{this.state.message}</p>
