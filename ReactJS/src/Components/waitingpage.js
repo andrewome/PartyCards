@@ -1,5 +1,5 @@
 import React,{Component} from 'react'
-import './stylesheet/styles.css';
+import '../stylesheet/styles.css';
 
 class WaitingPage extends Component{
   constructor(){

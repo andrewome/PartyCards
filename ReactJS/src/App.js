@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import './stylesheet/styles.css';
-import Svrcreate from './svrcreate';
-import JoinServer from './joinserver';
-import Title from './title';
-import Init from './Init';
+import Svrcreate from './Components/svrcreate';
+import JoinServer from './Components/joinserver';
+import Title from './Components/title';
+import Init from './Components/Init';
 import Cheat from './Games/Cheat';
 import Hearts from './Games/Hearts';
 import Taiti from './Games/Taiti';

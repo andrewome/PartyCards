@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import '../stylesheet/styles.css';
-import GameInfo from './GameInfo';
-import Sort from './sorting';
-import Scoreboard from './scoreboard'
+import GameInfo from './game_props/GameInfo';
+import Sort from './game_props/sorting';
+import Scoreboard from './game_props/scoreboard'
 
 //importing card images using webpack
 function importAll(r) {
@@ -11,7 +11,7 @@ function importAll(r) {
 	return images;
 }
 
-const images = importAll(require.context('./card_images', false, /\.(png|jpe?g|svg)$/));
+const images = importAll(require.context('./game_props/card_images', false, /\.(png|jpe?g|svg)$/));
 
 class Taiti extends Component {
 	constructor(props) {
