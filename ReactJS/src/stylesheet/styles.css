@@ -99,7 +99,7 @@
 
 	.hand {
 		display: inline;
-		margin-left: 5.25%;
+		margin-left: 4.125%;
 	}
 
 	.selected-cards {
@@ -108,12 +108,12 @@
 	}
 	
 	.cards {
-		width: 7%;
-		margin-left: -5.25%;
+		width: 5.5%;
+		margin-left: -4.125%;
 	}
 	
 	.scards {
-		width: 7%;
+		width: 5.5%;
 		margin: 0.05%;
 	}	
 	
