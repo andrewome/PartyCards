@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import Sort from './game_props/sorting';
-import GameInfo from './game_props/GameInfo';
-import Scoreboard from './game_props/scoreboard'
-import '../stylesheet/styles.css';
+import GameInfo from './game_props/GridGameInfo';
+import Scoreboard from './game_props/Gridscoreboard'
+import '../stylesheet/grid.css';
 
 function importAll(r) {
   let images = {};
@@ -284,15 +284,24 @@ class Hearts extends Component{
 	}
 
 	render() {
+    var opponenthand = [1,2,3,4,5,6,7,8,9,10,11,12,13];
 		var playerhand = this.state.player_hand
 		//Sorts hand according to value
 		playerhand = Sort.bySuit(playerhand);
 		var selectedcards = this.state.selected_cards;
 		var passedcards = this.state.passed_cards;
 		var playedcards = this.state.played_cards;
-
+    const listLeftHand = opponenthand.map((d) =>
+      <img className = "rgridcards" src = {images['rblackcard.png']}/>
+    )
+    const listRightHand = opponenthand.map((d)=>
+      <img className = "rgridcards" src = {images['rblackcard.png']}/>
+    )
+    const listOppHand = opponenthand.map((d)=>
+      <img className = "gridcards" src = {images['blackcard.png']}/>
+    )
 		const listHand = playerhand.map((d) =>
-			<img className = "cards" src = {images[d.value.sym + d.suit[0] + '.png']}
+			<img className = "gridcards" src = {images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() =>{
 					let index = playerhand.findIndex(x => x.name === d.name);
 					if(this.state.num_tricks === -1) {
@@ -322,9 +331,9 @@ class Hearts extends Component{
 			/>
 		);
 
-		const listPlayedCards = playedcards.map((d) => <img className = "scards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
+		const listPlayedCards = playedcards.map((d) => <img className = "gridscards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
 		const listCards = selectedcards.map((d) =>
-			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
+			<img className = "gridscards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() => {
 					let card = selectedcards.pop();
 					playerhand.push(card);
@@ -335,53 +344,90 @@ class Hearts extends Component{
 			/>
 		);
 
-		const listReceived = passedcards.map((d) => <img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}/>);
+		const listReceived = passedcards.map((d) => <img className = "gridscards" src ={images[d.value.sym + d.suit[0] + '.png']}/>);
 
 		return (
-			<div className = "Game">
-				<div className = "scoreboard-table">
-					<GameInfo
-						server_PIN = {this.props.server_PIN}
-						GameName = {this.props.GameName}
-						num_players = {this.props.num_players}
-						current_players = {this.props.current_players}
-						whoseTurn = {this.state.whoseTurn}
-					/>
-
+      <div className = "Grid">
+  			<div className = "box">Top Left
+          <GameInfo className = "scoreboard-table"
+            server_PIN = {this.props.server_PIN}
+            GameName = {this.props.GameName}
+            num_players = {this.props.num_players}
+            current_players = {this.props.current_players}
+            whoseTurn = {this.state.whoseTurn}
+          />
+        </div>
+        <div className = "box">
+        Top
+          <div className = "gridhand">
+            {listOppHand}
+          </div>
+        </div>
+  			<div className = "box">
+        Top Right
 					<Scoreboard
 						GameName = {this.props.GameName}
 						whoseTurn = {this.state.whoseTurn}
 						player_index = {this.state.player_index}
 						scoreboard = {this.state.scoreboard}
 					/>
-				</div>
+  			</div>
+        <div className = "box">
+        Left
+          <div className = "gridhand">
+            {listLeftHand}
+          </div>
+        </div>
+        <div className = "PlayingField">
+          <div className = "box">
+            <p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
+            <p hidden = {!this.state.show_passed}> You received: </p>
+          </div>
+          <div className = "displayGamePlay">
+            <div hidden = {!this.state.show_passed} >
+              {listReceived}
+            </div>
+              {listCards}
+            <div>
+            </div>
+    				<div hidden = {this.state.played_cards.length === 0} >
+    					<p>Played Cards: </p>
+    					{listPlayedCards}
+    				</div>
+          </div>
+          <div className = "box">
+            <div>
+              <button className = "button" hidden = {this.state.passed} onClick = {this.handlePassCards}>Pass Cards</button>
+    					<button className = "button" hidden = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
+    					<button className = "button" hidden = {!this.state.vote_next} onClick = {this.handleVoteNextGame}>Start next game!</button>
+            </div>
+            <div className = "statusbox">
+              <p>{this.state.message}</p>
+            </div>
+          </div>
+        </div>
 
-				<p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
+        <div className = "RightBox">
+        Right
+          <div className = "gridhand">
+            {listRightHand}
+          </div>
+        </div>
+        <div className = "box">
+        Bottom Left
+        </div>
+        <div className = "box">
+        Bottom
+          <p hidden = {this.state.player_hand.length === 0}>Player {this.state.player_index + 1}:</p>
 
-				<div className = "hand">
-					{listHand}
-				</div>
-
-				<div hidden = {!this.state.show_passed} >
-					<p> You received: </p>
-					{listReceived}
-				</div>
-
-				<p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
-				{listCards}
-				<div hidden = {this.state.played_cards.length === 0} >
-					<p>Played Cards: </p>
-					{listPlayedCards}
-				</div>
-				<div>
-					<button className = "button" hidden = {this.state.passed} onClick = {this.handlePassCards}>Pass Cards</button>
-					<button className = "button" hidden = {this.state.whoseTurn !== this.state.player_index || this.state.player_index === -1} onClick = {this.handlePlayCard}>Play Card</button>
-					<button className = "button" hidden = {!this.state.vote_next} onClick = {this.handleVoteNextGame}>Start next game!</button>
-				</div>
-				<div className = "statusbox">
-					<p>{this.state.message}</p>
-				</div>
-			</div>
+  				<div className = "gridhand">
+  					{listHand}
+  				</div>
+        </div>
+        <div className = "box">
+        Bottom Right
+        </div>
+      </div>
 		);
 	}
 }

@@ -50,11 +50,13 @@ class Svrcreate extends Component{
 					</select>
 					<p>Select the number of players</p>
 					<select value={this.state.num_players}
-					onChange={this.handleNumChange}>
+					onChange={this.handleNumChange}
+					>
 						<option value={4}>4</option>
 					</select>
-					<br/>
-					<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+					<p>
+						<button className = "button" onClick = {this.handleSubmission}> Submit </button>
+					</p>
 				</div>
 			);
 		}
@@ -68,7 +70,7 @@ class Svrcreate extends Component{
 						<option value="Hearts">Hearts</option>
 						<option value="Bridge">Bridge</option>
 					</select>
-					
+
 					<p>Select the number of players</p>
 					<select value={this.state.num_players} onChange={this.handleNumChange}>
 						<option value={2}>2</option>

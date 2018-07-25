@@ -9,6 +9,7 @@ import Hearts from './Games/Hearts';
 import Taiti from './Games/Taiti';
 import Bridge from './Games/Bridge';
 import io from 'socket.io-client';
+import GridHearts from './Games/GridHearts'
 
 class Body extends Component {
 	constructor(props) {
@@ -99,7 +100,7 @@ class Body extends Component {
 			}
 			else if(this.state.Game === "Hearts") {
 				return (
-					<Hearts
+					<GridHearts
 						GameName = {this.state.Game}
 						num_players = {this.state.num_players}
 						server_PIN = {this.state.server_PIN}
@@ -127,7 +128,7 @@ class Body extends Component {
 				);
 			}
 		}
-		
+
 		// if create create_server is false and server_created is false, show server creation page
 		else if(this.state.create_server && !this.state.server_created ){
 			return(
