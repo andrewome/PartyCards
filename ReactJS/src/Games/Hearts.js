@@ -326,8 +326,9 @@ class Hearts extends Component{
 		const listCards = selectedcards.map((d) =>
 			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() => {
-					let card = selectedcards.pop();
-					playerhand.push(card);
+          let index = selectedcards.findIndex(x => x.name === d.name)
+          selectedcards.splice(index, 1);
+          playerhand.push(d);
 					this.setState({message: "Pick a card!"});
 					this.setState({player_hand: playerhand});
 					this.setState({selected_cards: selectedcards});

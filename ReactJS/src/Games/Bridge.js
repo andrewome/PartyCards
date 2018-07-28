@@ -15,7 +15,7 @@ const images = importAll(require.context('./game_props/card_images', false, /\.(
 class Bridge extends Component {
 	constructor(props){
 		super(props);
-		
+
 		this.state = {
 			num_players: this.props.num_players,
 			num_game: 0,
@@ -44,7 +44,7 @@ class Bridge extends Component {
 			partner_index: -1,
 			partner_card: "",
 		}
-	
+
 		this.props.socket.on('startGame', function(data) {
 			//finding player index
 			for(var i=0;i<data.player.list.length;i++) {
@@ -52,7 +52,7 @@ class Bridge extends Component {
 					break;
 				}
 			}
-			
+
 			this.setState ({
 			num_players: this.props.num_players,
 			num_tricks: 1, // passing phase
@@ -65,11 +65,11 @@ class Bridge extends Component {
 			whoseTurn: data.whoseTurn,
 			bidding: 1,
 			});
-			
+
 			var msg = 'The last man has joined! Bidding Round begins... Player ' + (data.whoseTurn+1) + " will start the bid!";
 			this.setState({message: msg});
 		}.bind(this));
-		
+
 		this.props.socket.on('BidUpdate', function(data){
 			var TrumpSuit = this.ValuetoTrump(data.trump)
 			var msg = "Player " + (data.player_index + 1) + " bids " + data.difficulty + " " + TrumpSuit + "!" + " Player " + (data.whoseTurn+1) + "'s turn to bid...";
@@ -89,7 +89,7 @@ class Bridge extends Component {
 				whoseTurn: data.whoseTurn,
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('BidWon', function(data){
 			var msg = "Player " + (data.player_index + 1) + " has passed!" + " Player " + (data.winning_player+1) + " has won the bid and has to choose a partner!";
 			this.setState({
@@ -101,7 +101,7 @@ class Bridge extends Component {
 				trump: 0,
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('BridgeNextTurn',function(data){
 			this.setState({
 				message: data.message,
@@ -111,7 +111,7 @@ class Bridge extends Component {
 				break_trump: data.break_trump,
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('BridgeStartTrick', function(data) {
 			this.setState({
 				message: data.message,
@@ -124,7 +124,7 @@ class Bridge extends Component {
 				starting: 0,
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('BridgeNextTrick', function(data) {
 			this.setState({
 				message: data.message,
@@ -137,22 +137,22 @@ class Bridge extends Component {
 				played_suit: "",
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('PartnerChosen', function(data) {
 			var turn = data.player_index, msg = "", breaktrump = 1;
-			
+
 			if(this.state.winning_trump.name !== "No Trump"){
 				turn = (turn+1)%4;
 				breaktrump = 0;
 			}
-			
+
 			if(data.partner_index === this.state.player_index) {
 				msg = "Player " + (data.player_index+1) + " has chosen you("+ data.card_name + ") as your partner!" + " Player " + (turn+1) + " starts the game..."
 			}
 			else {
 				msg = "Player " + (data.player_index+1) + " has chosen " + data.card_name + " as their partner! " + "Player " + (turn+1) + " starts the game..."
 			}
-			
+
 			this.setState({
 				message: msg,
 				whoseTurn: turn,
@@ -163,7 +163,7 @@ class Bridge extends Component {
 				partner_card: data.card_name,
 			});
 		}.bind(this));
-		
+
 		this.props.socket.on('BridgeEnd', function(data) {
 			this.setState({
 				message:data.message,
@@ -186,7 +186,7 @@ class Bridge extends Component {
 			return "";
 		}
 	}
-	
+
 	ValuetoTrump = (val) => {
 		switch(parseInt(val)){
 			case 0:
@@ -203,29 +203,29 @@ class Bridge extends Component {
 			return "Invalid Trump value";
 		}
 	}
-	
+
 	handleDiffChange = (e) => {
 		this.setState({difficulty: e.target.value})
 	}
-	
+
 	handleTrumpChange = (e) => {
 		this.setState({trump: e.target.value})
 	}
-	
+
 	handlePass = () =>{
 		this.props.socket.emit('Pass',{
 			player_index: this.state.player_index,
 			pinNo: this.state.server_PIN,
 		});
 	}
-	
+
 	handlebidding = () => {
 		//Check whether player is bidding a lower difficulty than the current bid
 		if(this.state.difficulty < this.state.winning_diff) {
 			this.setState({message: "Cannot bid a lower difficulty!"})
 			return;
 		}
-		
+
 		//Check whether player is bidding a lower ranked suit at the same difficulty
 		//Not sure why cannot use === comparator here
 		if(this.state.difficulty == this.state.winning_diff){
@@ -234,7 +234,7 @@ class Bridge extends Component {
 				return;
 			}
 		}
-		
+
 		this.props.socket.emit('Bid',{
 			player_index: this.state.player_index,
 			trump: this.state.trump,
@@ -242,7 +242,7 @@ class Bridge extends Component {
 			pinNo:this.state.server_PIN,
 		});
 	}
-	
+
 	handlePlayCard = () => {
 		/*Preliminary checks*/
 		var breaktrump = this.state.break_trump;
@@ -268,7 +268,7 @@ class Bridge extends Component {
 			}
 		this.setState({played_suit: this.state.selected_cards[0].suit});
 		}
-		
+
 		//Checks whether suit of card selected matches with suit being played
 		if(this.state.selected_cards[0].suit !== this.state.played_suit){
 			let index = this.state.player_hand.findIndex(x => x.suit === this.state.played_suit);
@@ -280,7 +280,7 @@ class Bridge extends Component {
 			breaktrump = 1
 			}
 		}
-	
+
 		this.props.socket.emit("BridgePlayCard", {
 			played_card: this.state.selected_cards[0],
 			whoseTurn: this.state.whoseTurn,
@@ -348,26 +348,27 @@ class Bridge extends Component {
 							selectedcards.push(d);
 						}
 					}
-					
+
 					this.setState({message: "You selected " + d.name});
 					this.setState({player_hand: playerhand});
 					this.setState({selected_cards: selectedcards});
 				}}
 			/>
 		);
-		
+
 		const listCards = selectedcards.map((d) =>
 			<img className = "scards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() => {
-					let card = selectedcards.pop();
-						playerhand.push(card);
-						this.setState({message: "Pick a card!"});
-						this.setState({player_hand: playerhand});
-						this.setState({selected_cards: selectedcards});
+          let index = selectedcards.findIndex(x => x.name === d.name)
+          selectedcards.splice(index, 1);
+          playerhand.push(d);
+					this.setState({message: "Pick a card!"});
+					this.setState({player_hand: playerhand});
+					this.setState({selected_cards: selectedcards});
 				}}
 			/>
 		);
-		
+
 		return (
 			<div className = "Game">
 				<div className = "scoreboard-table">
@@ -378,7 +379,7 @@ class Bridge extends Component {
 						current_players = {this.props.current_players}
 						whoseTurn = {this.state.whoseTurn}
 					/>
-					
+
 					<Scoreboard
 						GameName = {this.props.GameName}
 						whoseTurn = {this.state.whoseTurn}
@@ -391,21 +392,21 @@ class Bridge extends Component {
 						partner_card = {this.state.partner_card}
 					/>
 				</div>
-					
+
 				<p hidden = {this.state.player_hand.length === 0}>Your hand:</p>
-				
+
 				<div className = "hand">
 					{listHand}
 				</div>
-				
+
 				<p hidden = {this.state.selected_cards.length === 0}>Selected Card: </p>
 				{listCards}
-				
+
 				<div hidden = {this.state.played_cards.length === 0} >
 					<p>Played Cards: </p>
 					{listPlayedCards}
 				</div>
-				
+
 				<div hidden = {!this.state.bidding || (this.state.whoseTurn !== this.state.player_index)}>
 					<label> Difficulty: </label>
 					<select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
@@ -418,11 +419,11 @@ class Bridge extends Component {
 					<button className = "button" onClick = {this.handlebidding}>Bid</button>
 					<button className = "button" onClick = {this.handlePass}>Pass</button>
 				</div>
-				
+
 				<div hidden = {!this.state.playing || (this.state.whoseTurn !== this.state.player_index)}>
 					<button className = "button" onClick = {this.handlePlayCard}>Play Card</button>
 				</div>
-				
+
 				<div hidden = {!this.state.choose_partner || (this.state.whoseTurn !== this.state.player_index)}>
 					<label>Value: </label>
 					<select value = {this.state.difficulty} onChange = {this.handleDiffChange}>
