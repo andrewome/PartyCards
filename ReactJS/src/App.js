@@ -100,7 +100,7 @@ class Body extends Component {
 			}
 			else if(this.state.Game === "Hearts") {
 				return (
-					<Hearts
+					<GridHearts
 						GameName = {this.state.Game}
 						num_players = {this.state.num_players}
 						server_PIN = {this.state.server_PIN}

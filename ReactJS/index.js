@@ -67,7 +67,7 @@ function findGameInstance(pin) {
 	}
 	if(i === gameInstances.length) {
 		return -1;
-	} 
+	}
 	else {
 		return i;
 	}
@@ -136,10 +136,10 @@ io.on('connection', function(socket) {
 			var gameInstanceIndex = findGameInstance(socket.PIN);
 			var PinNumListIndex = findPINNumList(socket.PIN);
 			gameInstances[gameInstanceIndex].current_players--;
-			
+
 			//check if the game server is empty (current_players === 0), if 0, delete the instance
 			if(gameInstances[gameInstanceIndex].current_players === 0) {
-				console.log("Server " + gameInstances[gameInstanceIndex].pinNo + " has no more people inside it. Deleting game instance");				
+				console.log("Server " + gameInstances[gameInstanceIndex].pinNo + " has no more people inside it. Deleting game instance");
 				console.log(" ");
 				gameInstances.splice(gameInstanceIndex, 1);
 				PINNumList.splice(PinNumListIndex, 1);
@@ -150,7 +150,7 @@ io.on('connection', function(socket) {
 				let msg = "Player " + (socket.player_index + 1) + " has disconnected!";
 				io.sockets.in(socket.PIN).emit('playerDisconnected', msg);
 			}
-		}		
+		}
 	});
 
 	//initial check if generated game pin is unique
@@ -219,7 +219,7 @@ io.on('connection', function(socket) {
 		if(pinExists) {
 			var gameInstanceIndex = findGameInstance(pin);
 			var isFull = false, i, j;
-			
+
 			//check whether server is full first, if full reject connection
 			if(gameInstanceIndex !== -1 && gameInstances[gameInstanceIndex].current_players >= gameInstances[gameInstanceIndex].num_players) {
 				//reject this connection
@@ -270,7 +270,7 @@ io.on('connection', function(socket) {
 									gameInstances[gameInstanceIndex].player.list[count % gameInstances[gameInstanceIndex].num_players].hand.push(card);
 									count++;
 								}
-								
+
 								let card = gameInstances[gameInstanceIndex].deck.deal();
 								if(card.name === "3 of Diamonds") {
 									//find 3 of Clubs, player will start
@@ -279,12 +279,12 @@ io.on('connection', function(socket) {
 											if(gameInstances[gameInstanceIndex].player.list[i].hand[j].name === "3 of Clubs") {
 												gameInstances[gameInstanceIndex].player.list[i].hand.push(card);
 												gameInstances[gameInstanceIndex].whoseTurn = i;
-												break;	
+												break;
 											}
 										}
 									}
 								}
-								else {	
+								else {
 									//find 3 of D, player will start
 									for(i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
 										for(j=0;j<gameInstances[gameInstanceIndex].player.list[i].hand.length;j++) {
@@ -365,7 +365,7 @@ io.on('connection', function(socket) {
 			socket.emit('AuthFail', 'server does not exist');
 		}
 	});
-	
+
 	//stores player_index of the player
 	socket.on('playerIndex', function(i) {
 		socket.player_index = i;
@@ -382,7 +382,7 @@ io.on('connection', function(socket) {
 	//we want to update his hand, discard pile, declared cards and change turn phase to 1
 	socket.on('cheatSubmitClientPhase0', function(data) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
-		
+
 		if(gameInstanceIndex !== -1) {
 			//remove cards from player's hand and add to discard pile
 			for(var i=0;i<data.selected_cards.length;i++) {
@@ -414,7 +414,7 @@ io.on('connection', function(socket) {
 		//console.log(data);
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0, i
-		
+
 		if(gameInstanceIndex !== -1) {
 		//if this client thinks that he's a cheater, check if he really did cheat
 			if(data.cheatVote) {
@@ -512,7 +512,7 @@ io.on('connection', function(socket) {
 	socket.on('taitiSubmitClient', function(data) {
 		var msg;
 		var gameInstanceIndex = findGameInstance(data.pinNo);
-		
+
 		if(gameInstanceIndex !== -1) {
 			//check if passvote is true or false
 			if(data.passVote) {
@@ -584,7 +584,7 @@ io.on('connection', function(socket) {
 		var counter = 0;
 		var waitplayers = [];
 		var dir = "";
-		
+
 		if(gameInstanceIndex !== -1) {
 			gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
 			gameInstances[gameInstanceIndex].player.list[data.player_index].hand = handremove(gameInstances[gameInstanceIndex].player.list[data.player_index].hand,data.selected_cards);
@@ -627,14 +627,14 @@ io.on('connection', function(socket) {
 				gameInstances[gameInstanceIndex].player.resetPassVotes();
 				io.sockets.in(data.pinNo).emit('PassedCards',{
 					gameinstance: gameInstances[gameInstanceIndex],
-					msg: "Everybody has passed their cards! Waiting for Player " + (turn+1) + " to start the game with 2 of Clubs...",
+					msg: "Everybody has passed their cards! Player " + (turn+1) + " starts the round with 2 of Clubs...",
 					whoseTurn : turn,
 				})
 				return;
 			}
 			//Not everybody has selected their cards. Prints out waiting message...
 			else{
-				var msg = "Waiting on player(s):" + waitplayers.join() + "to choose their 3 cards to pass " + dir + "..."
+				var msg = "Waiting on player(s):" + waitplayers.join() + "pass " + dir + "..."
 				io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
 			}
 		}
@@ -645,7 +645,7 @@ io.on('connection', function(socket) {
 		var whoseTurn = (data.whoseTurn + 1)%4;
 		var playedcards = data.played_cards;
 		var msg = "";
-		
+
 		if(gameInstanceIndex !== -1) {
 			if(playedcards.length === 4){
 				playedcards = [];
@@ -656,6 +656,7 @@ io.on('connection', function(socket) {
 			if(playedcards.length === 1){
 				msg = "Player " + (data.player_index+1) + " starts the trick with " + data.played_card.name + "! Waiting for Player " + (whoseTurn+1) + "...";
 				io.sockets.in(data.pinNo).emit('StartTrick', {
+					LastTurn: data.whoseTurn,
 					message: msg,
 					whoseTurn: whoseTurn,
 					played_suit: data.played_card.suit,
@@ -745,6 +746,7 @@ io.on('connection', function(socket) {
 				else{
 					msg = "Player " + (winningplayer +1) + " wins the trick with " + playedcards[card_index].card.name + "! It's his turn now..."
 					io.sockets.in(data.pinNo).emit('NextTrick', {
+						LastTurn: data.whoseTurn,
 						message: msg,
 						whoseTurn: winningplayer,
 						scoreboard: scoreboard,
@@ -758,6 +760,7 @@ io.on('connection', function(socket) {
 			else{
 				msg = "Player " + (data.player_index+1) + " played " + data.played_card.name + ". " + "Waiting for Player " + (whoseTurn+1) + "...";
 				io.sockets.in(data.pinNo).emit('NextTurn', {
+					LastTurn: data.whoseTurn,
 					played_cards: playedcards,
 					message: msg,
 					whoseTurn: whoseTurn,
@@ -768,16 +771,16 @@ io.on('connection', function(socket) {
 			}
 		}
 	})
-	
+
 	socket.on("VoteNextGame",function(data){
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var counter = 0;
 		var waitplayers = [];
 		var msg;
-		
+
 		if(gameInstanceIndex !== -1) {
 			gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
-			
+
 			//Checks if all the players have chosen move on to the next game
 			for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++) {
 				if(gameInstances[gameInstanceIndex].player.list[i].passVote === -1) {
@@ -845,7 +848,7 @@ io.on('connection', function(socket) {
 	socket.on('Bid',function(data) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var whoseTurn = (data.player_index + 1)%4;
-		
+
 		if(gameInstanceIndex !== -1) {
 			//Reset pass votes because a player has bid
 			gameInstances[gameInstanceIndex].player.resetPassVotes();
@@ -866,7 +869,7 @@ io.on('connection', function(socket) {
 		var whoseTurn = (data.player_index + 1)%4;
 		var counter = 0;
 		var winningplayer = -1;
-		
+
 		if(gameInstanceIndex !== -1) {
 			gameInstances[gameInstanceIndex].player.list[data.player_index].passVote = 1;
 
@@ -905,7 +908,7 @@ io.on('connection', function(socket) {
 		var whoseTurn = (data.whoseTurn + 1)%4;
 		var playedcards = data.played_cards;
 		var msg = "";
-		
+
 		if(gameInstanceIndex !== -1) {
 			if(playedcards.length === 4){
 				playedcards = [];
@@ -1013,11 +1016,11 @@ io.on('connection', function(socket) {
 			}
 		}
 	});
-	
+
 	socket.on('ChoosePartner', function(data) {
 		var gameInstanceIndex = findGameInstance(data.pinNo);
 		var partnerindex = -1;
-		
+
 		if(gameInstanceIndex !== -1) {
 			//Check who is the partner
 			for(let i=0;i<gameInstances[gameInstanceIndex].num_players;i++){

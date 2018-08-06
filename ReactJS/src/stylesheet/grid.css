@@ -1,30 +1,75 @@
 .Grid{
   display: grid;
   grid-template-columns:1fr 3fr 1fr;
-  grid-template-rows:1fr 3fr 1fr;
+  grid-template-rows:1fr 3fr 1.5fr;
+  width: 100vw;
+  height: 100vh;
 }
 
 .box{
   text-align: center;
-  border-style: solid;
-  border-color: black;
+  //border-style: solid;
+  //border-color: black;
+}
+.OppBox{
+  text-align: center;
+  display: grid;
 }
 .RightBox{
+  display:grid;
+  grid-template-columns:1fr 1fr;
   text-align: center;
-  border-style: solid;
-  border-color: black;
+  //border-style: solid;
+  //border-color: black;
+  margin-top: 0px;
+}
+.RightPlayer{
+  display:grid;
+  align-items: center;
+  justify-content: end;
+}
+.Rightgridhand{
+  display:grid;
+  justify-items: end;
+  align-items: center;
+}
+.LeftBox{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  text-align: center;
+  //border-style: solid;
+  //border-color: black;
+  margin-top:0px;
+}
+.LeftPlayer{
+  display: grid;
+  align-items:center;
+  justify-content: start;
+}
+.Leftgridhand{
+  display:grid;
+  justify-content:start;
+  align-items: center;
 }
 .PlayingField{
   text-align: center;
   display: grid;
-  grid-template-rows:1fr 3fr 1fr;
+  grid-template-rows:3fr 1.2fr;
 }
 .displayGamePlay{
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: center;
 }
-
+.PlayerBox{
+  text-align: center;
+  display: grid;
+  grid-template-rows: 1fr 2.5fr;
+  align-items: end;
+}
+.BtmRightBox{
+  display:grid;
+  align-items: end;
+}
 .Gridscoreboard{
   border: 0.005% #000000;
   border-style: solid;
@@ -42,18 +87,25 @@
   margin-left: 4.125%;
 }
 .gridcards{
-  display: inline-flex;
+  display: inline-grid;
+  align-items: end;
   width:10%;
   margin-left: -4.125%;
 }
+.sgridcards{
+  display: inline-flex;
+  width:10%;
+  margin-left: -4.125%;
+  margin-bottom: 2.125%;
+}
 
 .rgridcards{
-  display: flex;
-  flex-direction: column;
-  width: 40%;
-  margin-top: -10%;
+  display:grid;
+  width: 65%;
+  margin-top: -100%;
 }
-.gridscards {
-  width: 10%;
+.PlayedCards {
+  display: inline-grid;
+  width: 15%;
   margin: 0.05%;
 }
