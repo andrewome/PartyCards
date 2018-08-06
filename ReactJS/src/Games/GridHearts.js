@@ -406,7 +406,12 @@ class Hearts extends Component{
       }
     });
 
-		const listPlayedCards = playedcards.map((d) => <img className = "PlayedCards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>);
+		const listPlayedCards = playedcards.map((d) =>
+      <figure className = "FigPlayedCards">
+        <img className = "PlayedCards" src ={images[d.card.value.sym + d.card.suit[0] + '.png']}/>
+        <figcaption className = "FigPlayedCards" > Player {d.player_index+1}</figcaption>
+      </figure>
+    );
 		/*const listCards = selectedcards.map((d) =>
 			<img className = "gridscards" src ={images[d.value.sym + d.suit[0] + '.png']}
 				onClick = {() => {
@@ -443,10 +448,7 @@ class Hearts extends Component{
         </div>
         <div className = "PlayingField">
           <div className = "displayGamePlay">
-    				<div hidden = {this.state.played_cards.length === 0} >
-    					<p>Played Cards: </p>
-    					{listPlayedCards}
-    				</div>
+    				{listPlayedCards}
           </div>
           <div className = "box">
             <div className = "statusbox">

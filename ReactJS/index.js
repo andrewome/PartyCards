@@ -634,7 +634,7 @@ io.on('connection', function(socket) {
 			}
 			//Not everybody has selected their cards. Prints out waiting message...
 			else{
-				var msg = "Waiting on player(s):" + waitplayers.join() + "pass " + dir + "..."
+				var msg = "Waiting on player(s):" + waitplayers.join() + "to pass " + dir + "..."
 				io.sockets.in(data.pinNo).emit('HeartsWaitPassCards', msg);
 			}
 		}

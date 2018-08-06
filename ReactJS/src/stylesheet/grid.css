@@ -59,6 +59,7 @@
 .displayGamePlay{
   display: grid;
   align-items: center;
+  grid-template-columns:1fr 1fr 1fr 1fr;
 }
 .PlayerBox{
   text-align: center;
@@ -93,7 +94,7 @@
   margin-left: -4.125%;
 }
 .sgridcards{
-  display: inline-flex;
+  display: inline-grid;
   width:10%;
   margin-left: -4.125%;
   margin-bottom: 2.125%;
@@ -105,7 +106,10 @@
   margin-top: -100%;
 }
 .PlayedCards {
-  display: inline-grid;
-  width: 15%;
-  margin: 0.05%;
+  width: 65%;
+}
+.FigPlayedCards{
+  align-items: center;
+  justify-items:center;
+  margin:0;
 }
