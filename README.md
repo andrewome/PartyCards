@@ -36,7 +36,6 @@ Client side:
 
 Server side:
 + Change port number in ```index.js``` by changing ```portNum``` variable (people will access your website with this port number, default should be 80.)
-+ ```node start.js``` to run server
 
 Client side:
 + Inside ./ReactJS/src/App.js
