@@ -56,6 +56,6 @@ Copy these files over to the main directory:
 + start.js
 + index.js
 + ```constructors``` folder
-+ ```build``` folder (from the compiled version) and rename it to public
++ ```build``` folder (from the compiled version) and rename it to ```public```
 
 ```node start.js``` to start the server, and now people should be able to connect(and play with each other) to your PartyCards website! (Don't forget to do your portforwarding etc etc)
