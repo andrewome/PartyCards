@@ -1,6 +1,8 @@
 /ReactJS/node_modules/*
 /ReactJS/src/Games/test.js
 /ReactJS/build/*
+/ReactJS/package.json
+/ReactJS/package-lock.json
 compile.bat
 npm-start.bat
 start-server.bat
