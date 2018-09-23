@@ -1,6 +1,7 @@
 # PartyCards
 
 Created with create-react-app
+
 A simple web application to enjoy all your favourite card games!
 
 # Dependencies
@@ -8,6 +9,7 @@ A simple web application to enjoy all your favourite card games!
 Node.js and npm package installer are required.
 
 cd ./ReactJS/
+
 ```npm init``` 
 + Just follow through the stuff as instructed
 
